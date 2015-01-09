@@ -1,0 +1,559 @@
+/*    Copyright 2012 Brayden (headdetect) Lopez
+ *    
+ *    Dual-licensed under the Educational Community License, Version 2.0 and
+ *	the GNU General Public License Version 3 (the "Licenses"); you may
+ *	not use this file except in compliance with the Licenses. You may
+ *	obtain a copy of the Licenses at
+ *
+ *		http://www.opensource.org/licenses/ecl2.php
+ *		http://www.gnu.org/licenses/gpl-3.0.html
+ *
+ *		Unless required by applicable law or agreed to in writing
+ *	software distributed under the Licenses are distributed on an "AS IS"
+ *	BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *	or implied. See the Licenses for the specific language governing
+ *	permissions and limitations under the Licenses.
+ * 
+ */
+
+package com.wifiexchange;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.Arrays;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.os.Handler;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
+
+import com.tr.SerailPort.SerailPortOpt;
+import com.tr.crash.CrashApplication;
+import com.tr.main.TR_Main_Activity;
+import com.tr.maintainguide.TR_MaintainGuide_Activity;
+import com.tr.parameter_setting.TR_Parameter_Setting_Activity;
+import com.tr.programming.TR_Programming_Activity;
+
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Client. 已加入等待机制，确保每次发送资源独占
+ */
+public class Client implements Runnable {
+
+	// ===========================================================
+	// Constants
+	// ===========================================================
+	/******** 报错机制的变量 *********/
+	// private MyCount counttime;
+	/******** 发送数据等待缓存功能 *********/
+	// 发送状态标志位,默认情况下空闲
+	protected static boolean himaflag_high = true;
+	protected static boolean himaflag_low = true;
+	private int errorWaitTimes;
+	byte[] returnmessagebyte = new byte[1100];
+	//add by mpeng 0929
+	private SerailPortOpt serialPort;
+	protected OutputStream mOutputStream;
+	private String TAG = "Client";
+
+	// ===========================================================
+	// Fields
+	// ===========================================================
+	//private Handler mHandler;
+	//private Thread cClockThread;
+	/** The reader. */
+	private InputStream reader;
+
+	/** The writer. */
+	private OutputStream writer;
+
+	private static Socket thissocket;
+
+	/** The disconnecting. */
+	private boolean disconnecting;
+
+	/** The chat listener. */
+	private  static ChatListener chatListener;
+
+	/** The connection listener. */
+	private static ConnectionListener connectionListener;
+	private static Activity targetActivity;
+	private static byte[] message;
+	private static int HighPriorMsgErrorTime = 0;
+	private static int ResendNum = 5;
+	
+	public Activity getActivity() {
+		return targetActivity;
+	}
+	public static void setSendNum(int num)
+	{
+		ResendNum = num;
+	}
+	private static Handler myhandler = new Handler(){
+		public void handleMessage(android.os.Message msg)
+		{
+			super.handleMessage(msg);
+			if (msg.what == LittleDownTimer.TIME_OUT_MSG)
+			{
+				Log.e("mpeng","time out !!!");
+				
+				if(!himaflag_high)
+				{// 高优先级超时重发
+					
+					if(HighPriorMsgErrorTime<ResendNum)
+					{
+						HighPriorMsgErrorTime++;
+						reSendHighPriorMessage();
+						LittleDownTimer.resetMenu();
+						
+					}
+					else
+					{
+						if(ResendNum == 30)
+						{
+						new AlertDialog.Builder(targetActivity).setTitle("提示")
+					       .setMessage("检查Main板初始化状态超时~~ 查询30次 耗时 1分钟")
+					       .setPositiveButton("OK", null).show();
+						}else{
+							new AlertDialog.Builder(targetActivity).setTitle("提示")
+						       .setMessage("接收数据超时，重发5次 耗时10S")
+						       .setPositiveButton("OK", null).show();
+						}
+						
+					}
+						
+				}
+				
+			}
+		};
+	};
+	// ===========================================================
+	// Constructors
+	// ===========================================================
+
+	/**
+	 * Instantiates a new client.
+	 * 
+	 * @param s
+	 *            the socket
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	public Client() throws IOException {
+					disconnecting = false;
+					errorWaitTimes = 0;
+		            serialPort = new SerailPortOpt();
+		            openSerialPort();
+
+	}
+
+	/**
+	 * Connect to the specified address, and returns a client.
+	 * 
+	 * @param address
+	 *            the address
+	 * @return the connected client
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	public static Client connect() throws IOException {
+		Client client = new Client();
+		himaflag_high = true;
+		himaflag_low = true;
+		LittleDownTimer.getInstance().start();
+		LittleDownTimer.setHandler(myhandler);		
+		LittleDownTimer.stopMenu();
+		return client;
+	}
+
+	// ===========================================================
+	// Getter & Setter
+	// ===========================================================
+
+	private void setOnChatListener(ChatListener listener) {
+		chatListener = listener;
+	}
+	
+	public InputStream getReader() {
+		return reader;
+	}
+
+	// ===========================================================
+	// Methods for/from SuperClass/Interfaces
+	// ===========================================================
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Runnable#run()
+	 */
+	@Override
+	public void run() {
+		if (connectionListener != null) {
+			connectionListener.onJoin(this);
+		}
+		while (!disconnecting) {
+			try{
+		
+				int count = 0;
+				count = serialPort.readBytes(returnmessagebyte);
+				if(count > 0){  // 收到返回的数据   
+//					
+//					for(int i=0;i<count;i++)
+//						Log.d("mpeng","the return message is ["+i+"] is :" +returnmessagebyte[i]);
+						if (himaflag_high == false) {		
+							// 状态位置为空闲
+							himaflag_high = true;
+							//定时器停止
+							LittleDownTimer.stopMenu();	
+							HighPriorMsgErrorTime = 0;
+							errorWaitTimes = 0;
+							//System.out.println("high状态位置为空闲");
+							// 接受到的消息进行的处理，这只是一个接口，可以在不同页面进行配置（setOnChatListener）
+							// 以便获得不同的处理方式,一定要配置，要不然会出现空指针的错误
+							chatListener.onChat(returnmessagebyte);
+		
+							Arrays.fill(returnmessagebyte, (byte) 0);// 清空Buffer
+						} else if (himaflag_high == true && himaflag_low == false) {
+							// 状态位置为空闲
+							himaflag_low = true;
+							//定时器停止
+							LittleDownTimer.stopMenu();	
+							
+							errorWaitTimes = 0;
+							//System.out.println("low状态位置为空闲");
+							// 接受到的消息进行的处理，这只是一个接口，可以在不同页面进行配置（setOnChatListener）
+							// 以便获得不同的处理方式
+							// 一定要配置，要不然会出现空指针的错误
+							
+							chatListener.onChat(returnmessagebyte);
+		
+							Arrays.fill(returnmessagebyte, (byte) 0);// 清空Buffer
+							//length=0;
+					} 
+					}
+				//}
+			} catch (Exception e) {
+				System.out.println("read流断开");
+				e.printStackTrace();
+				if(WifiSetting_Info.progressDialog!=null){
+					
+					WifiSetting_Info.progressDialog.dismiss();
+					WifiSetting_Info.progressDialog=null;
+					disconnect();
+					System.out.println("WifiSetting_Info.progressDialog不等于空   dismiss");
+				}
+				// 清除客户端信息，保证下次继续重连
+				if (thissocket != null && thissocket.isConnected() && !thissocket.isClosed()){
+					reConnectionIO();
+				}else{
+					disconnect();
+				}
+			}
+		}
+	}
+
+	/***
+	 * 当读入流超时时重新从socket中获取流操作实例
+	 */
+	public void reConnectionIO(){
+		System.out.println("**********设置read/write重连**********");
+		reader = serialPort.getInputStream();
+		writer = serialPort.getOutputStream();		
+		errorWaitTimes = 0;
+		himaflag_high = true;
+		himaflag_low = true;
+		himaflag_low = true;
+		//定时器停止
+		LittleDownTimer.stopMenu();
+	}
+	
+	// ===========================================================
+	// Methods
+	// ===========================================================
+
+	/**
+	 * 发送数据函数
+	 * 
+	 * @param message
+	 *            the message
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws InterruptedException
+	 * @throws Exception
+	 *             the exception
+	 */
+	private static void reSendHighPriorMessage()
+	{
+		if(!himaflag_high)
+			himaflag_high = true;
+		WifiSetting_Info.mClient.sendHighPriorMessage(message,targetActivity,chatListener);
+	}
+	public void sendHighPriorMessage(byte[] message, Activity targetActivity,ChatListener lsitener) {
+		this.targetActivity = targetActivity;
+		this.message = message;
+//		System.out.println("himaflag_high111h="+himaflag_high+"      himaflag_low111h="+himaflag_low);
+//		System.out.println("himaflag_low111h="+himaflag_low);
+		if (himaflag_high == true) {
+			// 检查低优先级的线程是否已经发送完
+			if (himaflag_low == true) {
+				// 关闭低优先级线程
+				Log.e("mpeng","1111111:");
+				WifiSetting_Info.blockFlag = false;				
+				setOnChatListener(lsitener);
+				// 置状态位为忙碌 开启计时器
+				LittleDownTimer.resetMenu();
+				himaflag_high = false;
+				if (message == null)
+					return;
+				try {
+					synchronized(writer) {
+						writer.write(message, 0, message.length);
+					}
+				//System.out.println("himaflag_low111h writer前bbbb");
+				} catch (IOException e) {
+					// TODO: handle exception
+					System.out.println("sendHighPriorMessage()==socket 断开");
+					disconnect();
+
+				}
+			//	System.out.println("himaflag_low111h writer后");
+			} else {
+					errorWaitTimes++;
+				if (errorWaitTimes > 15) {//15
+					himaflag_low = true;
+					//定时器停止
+					LittleDownTimer.stopMenu();
+				}
+				if (errorWaitTimes > 20) {//20
+					nulldisconnect();
+					System.out.println("shm被抢占&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+				}
+				// 关闭低优先级线程
+
+				WifiSetting_Info.blockFlag = false;
+
+				System.out.println("1shm被抢占"+ errorWaitTimes);
+
+				try {
+					Thread.sleep(20);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				if (errorWaitTimes <= 20) {//20
+					
+					sendHighPriorMessage(message, targetActivity, lsitener);
+					LittleDownTimer.resetMenu();
+				}
+			}
+		} else {
+			errorWaitTimes++;
+			System.out.println("2shm被抢占" + errorWaitTimes);
+			if (errorWaitTimes > 20) {//20
+				System.out.println("sendHighPriorMessage 下位机不鸟我-_-!!");
+				nulldisconnect();
+				Toast.makeText(targetActivity, "通信错误，下位机未返信息",
+						Toast.LENGTH_SHORT);
+			}
+		}
+	}
+	
+	/**
+	 * 该方法用于不断查询的通信线程
+	 * 
+	 * @param message
+	 * @param lsitener
+	 * @throws IOException
+	 */
+	public  void sendMessage(byte[] message, ChatListener lsitener,Activity targetActivity) {
+		this.targetActivity = targetActivity;
+//		System.out.println("himaflag_high*******"+himaflag_high+"*******himaflag_low********"+himaflag_low);
+		if (message == null)
+			return;
+		if (himaflag_high == true && himaflag_low == true) {
+			setOnChatListener(lsitener);
+			// 置状态位为忙碌
+			himaflag_low = false;
+			try {
+				if (null == writer) {
+					System.out.println("writer已关闭！！！");
+				} else {
+					synchronized(writer) {											
+							writer.write(message, 0, message.length);
+						}
+				} 
+				//length=HexDecoding.Array2Toint(message,2)+9;
+			} catch (IOException e) {
+				// TODO: handle exception
+				e.printStackTrace();
+				System.out.println("sendMessage()==socket 断开");
+				disconnect();
+			}
+		} else {
+			errorWaitTimes++;
+			System.out.println("sm被抢占" + errorWaitTimes);
+			try {
+				writer.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (errorWaitTimes > 20) {//20
+				System.out.println("sendMessage()下位机不鸟我-_-!!");
+				nulldisconnect();
+			}
+			/*if (errorWaitTimes > 80) {
+				System.out.println("sm下位机不鸟我-_-!!");
+				disconnect();
+			}*/
+		
+		}
+	}
+
+	/**
+	 * Disconnects the client.
+	 */
+	public void disconnect() {
+		disconnecting = true;
+		WifiSetting_Info.blockFlag=false;
+		System.out.println("disconnect()通讯中断");
+
+		if (connectionListener != null) {
+			connectionListener.onDisconnect(this);
+		}
+		reader = null;
+		writer = null;
+//		try {
+//			Log.d("mpeng","55555");
+//			thissocket.close();
+//			Log.d("mpeng","6666");
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}		
+		WifiSetting_Info.mClient = null;
+		 Runnable wifiledRunnable=new Runnable() {
+				public void run() {
+					if(TR_Main_Activity.wifi_led!=null){
+			        	TR_Main_Activity.wifi_led.setVisibility(View.GONE);
+			        }
+			        if(TR_MaintainGuide_Activity.wifi_led!=null){
+			        	TR_MaintainGuide_Activity.wifi_led.setVisibility(View.GONE);
+			        }
+			        if(TR_Parameter_Setting_Activity.wifi_led!=null){
+			        	TR_Parameter_Setting_Activity.wifi_led.setVisibility(View.GONE);
+			        }
+			        if(TR_Programming_Activity.wifi_led!=null){
+			        	TR_Programming_Activity.wifi_led.setVisibility(View.GONE);
+			        }
+				}
+			};
+			if(targetActivity!=null){
+			   targetActivity.runOnUiThread(wifiledRunnable);
+			}
+ 
+		/*WriterUtils writeUtils = WriterUtils.getInstance();
+		writeUtils.shutdown();*/
+		/*
+		 * final Runnable finishRunnable=new Runnable() {
+		 * 
+		 * @Override public void run() { // TODO Auto-generated method stub
+		 * 
+		 * Toast.makeText(getActivity(), "连接成功", Toast.LENGTH_LONG).show(); }
+		 * 
+		 * }; final Runnable errorRunnable=new Runnable() {
+		 * 
+		 * @Override public void run() { // TODO Auto-generated method stub
+		 * 
+		 * Toast.makeText(getActivity(), "连接失败，请确认连接正确的网络",
+		 * Toast.LENGTH_LONG).show(); } }; Runnable tempRunnable=new Runnable()
+		 * {
+		 * 
+		 * @Override public void run() { // TODO Auto-generated method stub try
+		 * { WifiSetting_Info.mClient = Client.connect("192.168.1.1"); new
+		 * Thread(WifiSetting_Info.mClient).start();
+		 * 
+		 * getActivity().runOnUiThread(finishRunnable); } catch (IOException e)
+		 * { // TODO Auto-generated catch block e.printStackTrace();
+		 * 
+		 * getActivity().runOnUiThread(errorRunnable); } } }; new
+		 * Thread(tempRunnable).start();
+		 */
+		
+	}
+	
+	private void openSerialPort(){
+		if(serialPort.mFd == null)
+		{
+			serialPort.mDevNum = 0;
+			serialPort.mSpeed = 115200;
+			serialPort.mDataBits = 8 ;
+			serialPort.mStopBits = 1 ;
+			serialPort.mParity = 'n';
+			serialPort.openDev(serialPort.mDevNum);
+			serialPort.setSpeed(serialPort.mFd,serialPort.mSpeed );
+			serialPort.setParity(serialPort.mFd, serialPort.mDataBits, serialPort.mStopBits, serialPort.mParity);
+		    Log.i(TAG,"OPENG SERIALPORT !!!");
+		    reader = serialPort.getInputStream();
+		    writer = serialPort.getOutputStream();
+		    Log.i(TAG,"SERIALPORT 2222 ");
+		    
+		  
+		}
+		else 
+		{
+			Log.i(TAG,"the port is open ");
+		}
+	}
+    private void closeSerialPort()
+    {
+    	
+    	if(serialPort.mFd != null)
+    		serialPort.closeDev(serialPort.mFd);
+    	 Log.i(TAG,"closeSerialPort");    	
+    }
+	
+	
+	/**
+	 * 
+	 */
+	public void nulldisconnect() {
+		Log.d(TAG,"nulldisconnect !!");
+		disconnecting = true;
+		closeSerialPort();
+		 new AlertDialog.Builder(CrashApplication.getInstance()).setTitle("提示")
+	       .setMessage("closeSerialPort")
+	       .setPositiveButton("OK", null).show();
+		if (connectionListener != null) {
+			connectionListener.onDisconnect(this);
+		}
+
+		if(reader==null){
+			return;
+		}
+		if(writer==null){
+			return;
+		}
+		try {
+			reader.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			writer.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	// ===========================================================
+	// Inner and Anonymous Classes
+	// ===========================================================
+
+}
