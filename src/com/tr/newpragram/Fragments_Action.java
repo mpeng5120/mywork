@@ -140,12 +140,7 @@ public class Fragments_Action extends Fragment {
 	private CheckBox hbox;
 	private CheckBox zbox;
 	private CheckBox lbox;
-	
-	private TextView xTxt;
-	private TextView yTxt;
-	private TextView hTxt;
-	private TextView zTxt;
-	private TextView lTxt;
+
 	
 	private TextView xCurTxt;
 	private TextView yCurTxt;
@@ -225,6 +220,8 @@ public class Fragments_Action extends Fragment {
 	private int listselectposition=0;
 	private boolean DownLoadSucess = false;
 	private static boolean isModify = false;
+	private AlertDialog unFoucsDialog ;
+	
 	public static void changeModifyStatus(boolean change)
 	{
 		isModify = change;
@@ -1147,19 +1144,49 @@ public class Fragments_Action extends Fragment {
 						public void onItemClick(AdapterView<?> arg0, View arg1,
 								final int position, long arg3) {
 							try{
-									myPos = position;
-									if(NcEditList.size()==(position+1)){
-										HashMap<String, Object> map = new HashMap<String, Object>();
-										map.put("addressText",	String.format("%04d", NcEditList.size()));//
-										map.put("numSpinner","");
-										map.put("orderSpinner","");
-										map.put("operatText","");
-										map.put("noteEditText","");
-										NcEditList.add(map);
+								if(myPos==position)
+								{	
+									String Order = NcEditList.get(myPos).get("orderSpinner").toString();
+									Log.e("mpeng"," NcEditList.get(myPos) "+NcEditList.get(myPos).toString());		
+									if(Order.equals("MOVE"))
+									{
+										move.performClick();
+									}else if(Order.equals("OUT"))
+									{
+										qdbtn.performClick();
+									}else if(Order.equals("OUTP"))
+									{
+										zjbtn.performClick();
+									}else if(Order.equals("PARALLEL"))
+									{
+										zsjxhbtn.performClick();
+									}else if(Order.equals("IF"))
+									{
+										wait.performClick();
+									}else if(Order.equals("SEQUENTIAL"))
+									{
+										jcbtn.performClick();
+									}else if(Order.equals("WAIT"))
+									{
+										delaytime.performClick();
 									}
-									NCedit_Adapter.setSelectItem(position);
-									NCedit_Adapter.notifyDataSetChanged();
-									enableButton();
+								}
+								else
+								{
+										myPos = position;
+										if(NcEditList.size()==(position+1)){
+											HashMap<String, Object> map = new HashMap<String, Object>();
+											map.put("addressText",	String.format("%04d", NcEditList.size()));//
+											map.put("numSpinner","");
+											map.put("orderSpinner","");
+											map.put("operatText","");
+											map.put("noteEditText","");
+											NcEditList.add(map);
+										}
+										NCedit_Adapter.setSelectItem(position);
+										NCedit_Adapter.notifyDataSetChanged();
+										enableButton();
+									}
 						}catch(Exception e){
 							e.printStackTrace();
 						}
@@ -1177,6 +1204,15 @@ public class Fragments_Action extends Fragment {
 				NCedit_Adapter.moveoperate("MOVE", myPos);
 				//mpeng
 			}
+			else
+			{
+				if(unFoucsDialog!=null)
+					unFoucsDialog.dismiss();
+				 unFoucsDialog = new AlertDialog.Builder(getActivity()).setTitle("提示")
+				            .setMessage("请选中程序中的某一行再进行此操作")				            
+				            .setPositiveButton("取消", null)
+				            .show();
+			}
 		}
 	});
 	
@@ -1185,13 +1221,32 @@ public class Fragments_Action extends Fragment {
 		public void onClick(View v) {
 			if(myPos != -1)
 			{NCedit_Adapter.zsoperate(myPos);}
+			else
+			{
+				if(unFoucsDialog!=null)
+					unFoucsDialog.dismiss();
+				 unFoucsDialog = new AlertDialog.Builder(getActivity()).setTitle("提示")
+				            .setMessage("请选中程序中的某一行再进行此操作")				            
+				            .setPositiveButton("取消", null)
+				            .show();
+			}
 		}
+		
 	});
 	zjbtn = (Button) getActivity().findViewById(R.id.zjBtn);
 	zjbtn.setOnClickListener(new OnClickListener() {	
 		public void onClick(View v) {
 			if(myPos != -1)
 			{NCedit_Adapter.zjoperate( myPos);}
+			else
+			{
+				if(unFoucsDialog!=null)
+					unFoucsDialog.dismiss();
+				 unFoucsDialog = new AlertDialog.Builder(getActivity()).setTitle("提示")
+				            .setMessage("请选中程序中的某一行再进行此操作")				            
+				            .setPositiveButton("取消", null)
+				            .show();
+			}
 		}
 	});
 	zsjxhbtn = (Button) getActivity().findViewById(R.id.zsjxhtBtn);
@@ -1199,6 +1254,15 @@ public class Fragments_Action extends Fragment {
 		public void onClick(View v) {
 			if(myPos != -1)
 			{NCedit_Adapter.zsjxhoperate( myPos);}
+			else
+			{
+				if(unFoucsDialog!=null)
+					unFoucsDialog.dismiss();
+				 unFoucsDialog = new AlertDialog.Builder(getActivity()).setTitle("提示")
+				            .setMessage("请选中程序中的某一行再进行此操作")				            
+				            .setPositiveButton("取消", null)
+				            .show();
+			}
 		}
 	});
 	jcbtn = (Button) getActivity().findViewById(R.id.jcBtn);
@@ -1206,6 +1270,15 @@ public class Fragments_Action extends Fragment {
 		public void onClick(View v) {
 			if(myPos != -1)
 			{NCedit_Adapter.jcoperate( myPos);}
+			else
+			{
+				if(unFoucsDialog!=null)
+					unFoucsDialog.dismiss();
+				 unFoucsDialog = new AlertDialog.Builder(getActivity()).setTitle("提示")
+				            .setMessage("请选中程序中的某一行再进行此操作")				            
+				            .setPositiveButton("取消", null)
+				            .show();
+			}
 		}
 	});
 	delaytime = (Button) getActivity().findViewById(R.id.delaytimeBtn);
@@ -1213,6 +1286,15 @@ public class Fragments_Action extends Fragment {
 		public void onClick(View v) {
 			if(myPos != -1)
 			{NCedit_Adapter.delaytimeoperate( myPos);}
+			else
+			{
+				if(unFoucsDialog!=null)
+					unFoucsDialog.dismiss();
+				 unFoucsDialog = new AlertDialog.Builder(getActivity()).setTitle("提示")
+				            .setMessage("请选中程序中的某一行再进行此操作")				            
+				            .setPositiveButton("取消", null)
+				            .show();
+			}
 		}
 	});
 	
@@ -1224,6 +1306,15 @@ public class Fragments_Action extends Fragment {
 			// TODO Auto-generated method stub
 			if(myPos != -1)
 			{NCedit_Adapter.ifwaitoperate( myPos);}
+			else
+			{
+				if(unFoucsDialog!=null)
+					unFoucsDialog.dismiss();
+				 unFoucsDialog = new AlertDialog.Builder(getActivity()).setTitle("提示")
+				            .setMessage("请选中程序中的某一行再进行此操作")				            
+				            .setPositiveButton("取消", null)
+				            .show();
+			}
 		}
 	});
 	  insertBtn =  (Button)getActivity().findViewById(R.id.insertBtn);
@@ -2288,13 +2379,7 @@ public class Fragments_Action extends Fragment {
         	  ybox.setClickable(false);
         	  hbox.setClickable(false);
         	  zbox.setClickable(false);
-        	  lbox.setClickable(false);
-        	
-        	  xTxt = (TextView) orderView.findViewById(R.id.xValue);
-        	  yTxt = (TextView) orderView.findViewById(R.id.yValue);
-        	  hTxt = (TextView) orderView.findViewById(R.id.hValue);
-        	  zTxt = (TextView) orderView.findViewById(R.id.Zvalue);
-        	  lTxt = (TextView) orderView.findViewById(R.id.lValue);
+        	  lbox.setClickable(false);	
         	  
 			  xCurTxt= (TextView) orderView.findViewById(R.id.xValue);
 			  yCurTxt= (TextView) orderView.findViewById(R.id.yValue);
@@ -3524,7 +3609,10 @@ public class Fragments_Action extends Fragment {
      
 		 }
 	}
-	
+	private void showProgramDetail()
+	{
+		
+	}
 	
 	
 }

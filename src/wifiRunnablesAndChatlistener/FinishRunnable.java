@@ -3,6 +3,7 @@ package wifiRunnablesAndChatlistener;
 import wifiProtocol.WifiReadDataFormat;
 
 import com.dataInAddress.AddressPublic;
+import com.dataInAddress.PlcData;
 import com.tr.programming.Config;
 import com.wifiexchange.ChatListener;
 import com.wifiexchange.WifiSetting_Info;
@@ -52,6 +53,11 @@ public class FinishRunnable implements Runnable{
 		tempActivity=target;
 		tempString=appearText;
 		i=0;
+	}
+	public FinishRunnable(Activity target,String appearText,int index){
+		tempActivity=target;
+		tempString=appearText;
+		i=index;
 	}
 	public FinishRunnable(Activity target){//防止在界面上重复输出“数据发送完毕”
 		tempActivity=target;
@@ -115,6 +121,11 @@ public class FinishRunnable implements Runnable{
 		
 		if(i==0){
 		   Toast.makeText(tempActivity, tempString, Toast.LENGTH_SHORT).show();
+		}
+		else if(i==55)
+		{
+			Toast.makeText(tempActivity, tempString, Toast.LENGTH_SHORT).show();
+			PlcDataQueryRunnable.issendStop = false;
 		}
 		WifiSetting_Info.blockFlag=true;
 		//WifiSetting_Info.sendProgrammingfinish=1;

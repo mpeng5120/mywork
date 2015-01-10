@@ -239,7 +239,8 @@
 			    android:layout_height="wrap_content"
 			    android:layout_marginLeft="15dp"	
 			    android:layout_marginRight="15dp"
-			    android:text="12" />
+			    android:hint="*****.*" 			    
+			    android:text="*****.*" />
 	        
 			<EditText
 			    android:id="@+id/xEditText"
@@ -266,7 +267,8 @@
 			    android:layout_height="wrap_content"
 			    android:layout_marginLeft="15dp"	
 			    android:layout_marginRight="15dp"
-			    android:text="34" />
+			    android:hint="*****.*" 
+			    android:text="*****.*" />
 	        
 			<EditText
 			    android:id="@+id/yEditText"
@@ -295,7 +297,8 @@
 			    android:layout_height="wrap_content"
 			    android:layout_marginLeft="15dp"	
 			    android:layout_marginRight="15dp"
-			    android:text="56" />
+			    android:hint="*****.*" 
+			    android:text="*****.*" />
 	        
 			<EditText
 			    android:id="@+id/hEditText"
@@ -323,7 +326,8 @@
 			    android:layout_height="wrap_content"
 			    android:layout_marginLeft="15dp"	
 			    android:layout_marginRight="15dp"
-			    android:text="56" />
+			    android:hint="*****.*" 
+			    android:text="*****.*" />
 	        
 			<EditText
 			    android:id="@+id/zEditText"
@@ -350,9 +354,10 @@
 				    android:id="@+id/lValue"
 				    android:layout_width="wrap_content"
 				    android:layout_height="wrap_content"
-			    android:layout_marginLeft="15dp"	
-			    android:layout_marginRight="15dp"
-				    android:text="90" />
+			    	android:layout_marginLeft="15dp"	
+			   	 	android:layout_marginRight="15dp"
+			    	android:hint="*****.*" 
+				    android:text="*****.*" />
 		        
 				<EditText
 				    android:id="@+id/lEditText"

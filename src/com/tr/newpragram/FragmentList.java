@@ -10,6 +10,7 @@ import com.tr.programming.TR_Programming_Activity;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +18,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -36,8 +39,23 @@ public class FragmentList extends Fragment {
 	private Button AddBtn = null;
 	private Button DownLoadBtn = null;
 	private Activity myActivity;
+	private int myPos = -1;
+	public static boolean IsDetailFragment = false;
 
 	
+	/**
+	 * @return the isDetailFragment
+	 */
+	public static boolean isIsDetailFragment() {
+		return IsDetailFragment;
+	}
+
+	/**
+	 * @param isDetailFragment the isDetailFragment to set
+	 */
+	public static void setIsDetailFragment(boolean isDetailFragment) {
+		IsDetailFragment = isDetailFragment;
+	}
 	ArrayList<HashMap<String, Object>> NcEditList = ArrayListBound.getNCeditList3Data();
 	
 	@Override
@@ -105,10 +123,66 @@ public class FragmentList extends Fragment {
 		myAdapte  = new ListAdapter(getActivity(), mDataSourceList);
 		listView.setAdapter(myAdapte);
 		myAdapte.notifyDataSetChanged();
-		
-		listView.setClickable(false);
-		
-		
+		listView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1,
+					final int position, long arg3) {
+				try{
+					if(myPos==position)
+					{
+						
+						Intent IT = new Intent();
+					    Bundle bundle = new Bundle();
+					    Log.d("mpeng","the pos is "+myPos);
+					    //bundle.putInt("pos",pos);    // 当前点击的位置
+					    if(myPos<0){
+					    	Toast.makeText(getActivity(), "请选择位置", Toast.LENGTH_SHORT).show();
+					    	return;
+					    }					    
+					    String name = mDataSourceList.get(myPos).get("operatText").toString().trim();					    
+					    if(name.contains("SP"))
+					    {
+					    	String PosName = name.substring(name.indexOf("S"));
+					    	bundle.putString("PosType", PosName);//当前是P SP.FP					   
+						    IT.putExtras(bundle);
+						    IT.setAction("gotoDetailSetting");
+							getActivity().sendBroadcast(IT);
+					    }else if(name.contains("FP"))
+					    {
+					    	String PosName = name.substring(name.indexOf("F"));
+					    	bundle.putString("PosType", PosName);//当前是P SP.FP					   
+						    IT.putExtras(bundle);
+						    IT.setAction("gotoDetailSetting");
+							getActivity().sendBroadcast(IT);
+					    }else if(name.contains("P"))
+					    {
+					    	String PosName = name.substring(name.indexOf("P"));
+					    	bundle.putString("PosType", PosName);//当前是P SP.FP					   
+						    IT.putExtras(bundle);
+						    IT.setAction("gotoDetailSetting");
+							getActivity().sendBroadcast(IT);
+					    }
+					    
+					}
+					else
+					{
+						myPos = position;		
+						myAdapte.setSelectItem(myPos);
+						myAdapte.notifyDataSetChanged();
+						if(!IsDetailFragment)
+						{
+							Intent IT =new Intent();
+							IT.setAction("goPositionPreview");
+							getActivity().sendBroadcast(IT);
+						}
+					}
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			}
+
+		});
 	}
 	
 

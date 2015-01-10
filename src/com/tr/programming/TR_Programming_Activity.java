@@ -322,7 +322,19 @@ public class TR_Programming_Activity extends Activity {
 		   public boolean onTouch(View v, MotionEvent event) {  
 		            if(v.getId() == R.id.stop){    
 		                if(event.getAction() == MotionEvent.ACTION_DOWN){ 
-		                	KeyCodeSend.send(999, TR_Programming_Activity.this);
+		                	if(plcquery!=null)
+		                	{
+		                		plcquery.issendStop =true;
+		                		Log.e("mpeng","pause table watch!!");
+		                	}
+		                	else
+		                	{
+		                		KeyCodeSend.send(999, TR_Programming_Activity.this);
+		                	}
+//		                	if(plcquery!=null)
+//		                	{
+//		                		plcquery.issendStop =false;
+//		                	}
 		                }  
 		            }  
 		            return false;  

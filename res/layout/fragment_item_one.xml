@@ -128,7 +128,8 @@
 			    android:gravity="center"
 			    android:ems="8"
 			    android:paddingLeft="5dip"
-			    android:text="12" />
+			    android:hint="*****.*"
+			    android:text="*****.*" />
 	        
 			<EditText
 			    android:id="@+id/xEditText"
@@ -163,7 +164,8 @@
 			    android:gravity="center"
 			    android:ems="8"
 			    android:paddingLeft="5dip"
-			    android:text="34" />
+			    android:hint="*****.*"
+			    android:text="*****.*" />
 	        
 			<EditText
 			android:id="@+id/yEditText"
@@ -199,7 +201,8 @@
 			    android:gravity="center"
 			    android:ems="8"
 			    android:paddingLeft="5dip"
-			    android:text="78" />
+			    android:hint="*****.*"
+			    android:text="*****.*" />
 	        
 			<EditText
 			    android:id="@+id/hEditText"
@@ -235,7 +238,8 @@
 			    android:gravity="center"
 			    android:ems="8"
 			    android:paddingLeft="5dip"		    
-			    android:text="56" />
+			    android:hint="*****.*"
+			    android:text="*****.*" />
 	        
 			<EditText
 			    android:id="@+id/zEditText"
@@ -269,7 +273,8 @@
 				    android:gravity="center"
 				    android:ems="8"
 				    android:paddingLeft="5dip"
-				    android:text="90" />
+				    android:hint="*****.*"
+			    	android:text="*****.*" />
 		        
 				<EditText
 				    android:id="@+id/lEditText"

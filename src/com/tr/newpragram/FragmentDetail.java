@@ -214,6 +214,7 @@ public class FragmentDetail extends Fragment {
 	public void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
+		FragmentList.setIsDetailFragment(true);
 		if(whichBtnChecked.equals("isPosition"))
 		{
 			Log.e("mpeng","the which button is 1111 "+whichBtnChecked);
@@ -724,7 +725,8 @@ public void onPause() {
 	Log.d("FragmentDetail"," on Pause !");
 	PositonBtn.setChecked(false);
 	TimerBtn.setChecked(false);	
-	CounterBtn.setChecked(false);	
+	CounterBtn.setChecked(false);
+	FragmentList.setIsDetailFragment(false);
 	
 }
 

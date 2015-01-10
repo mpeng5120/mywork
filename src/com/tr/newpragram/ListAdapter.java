@@ -129,16 +129,15 @@ public class ListAdapter extends BaseAdapter {
 					}
 				}
 				
-				
-//				if (position == mselectItem) {	
-//					
-//					holder.numText.setBackgroundColor(Color.GREEN);
-//		    	    holder.praText.setBackgroundColor(Color.GREEN);
-//					
-//	            }else{//如果被选中，设置为红色	          
-//					holder.numText.setBackgroundColor(Color.GRAY);
-//		    	    holder.praText.setBackgroundColor(Color.WHITE);
-//				}
+				if (position == mselectItem) {
+					holder.praText.setTextColor(Color.RED);
+		    	    convertView.setBackgroundColor(Color.RED);
+	            }else{//如果被选中，设置为红色
+
+	            	holder.praText.setTextColor(Color.BLACK);
+	            	convertView.setBackgroundColor(Color.BLACK);
+				}			
+
 // 添加设定值行监听器
 			}
 			
