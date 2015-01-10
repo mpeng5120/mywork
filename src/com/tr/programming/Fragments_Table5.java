@@ -3,28 +3,19 @@ package com.tr.programming;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
 import wifiRunnablesAndChatlistener.PlcDataQueryRunnable;
-import wifiRunnablesAndChatlistener.WatchRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import com.dbutils.ArrayListBound;
-import com.explain.NCTranslate;
 import com.explain.TableTranslate;
 import com.tr.R;
 import com.tr.programming.Fragments_Device_ActualInput.lockListener;
-import com.tr.programming.Fragments_Table1.MyAdapter;
-
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -34,7 +25,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -42,10 +32,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import awesomeWatch.TableWatch;
@@ -74,10 +62,9 @@ public class Fragments_Table5 extends Fragment {
 	//FUCK，一定要选用线程安全的键值对
 	//public static Hashtable<Integer,TextView[]> temphHashTable = new Hashtable<Integer,TextView[]>();
 	// public static HashMap<Integer, View> temphHashMap=new HashMap<Integer,View>();
-	
-	private AlarmQueryRunnable alarmQueryRunnable;
+
 	private int counter = 0;
-	private ledRunnable ledrunnable;
+
 	private MultiAutoCompleteTextView layoutfind; 
 	private MultiAutoCompleteTextView layoutreplace;
 	public static ArrayList<String> opList_symbol_NC = new ArrayList<String>();//存储设备定义中的所有信号名

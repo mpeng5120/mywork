@@ -5,10 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
@@ -16,7 +12,6 @@ import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +26,6 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 import com.dbutils.ArrayListBound;
-import com.explain.TableToBinary;
 import com.tr.R;
 import com.tr.programming.Fragments_Device_ActualInput.lockListener;
 
@@ -265,7 +259,7 @@ try{
 				
  				final EditText etEditText = new EditText(getActivity());
  				nameString="";
-					etEditText.setHint("keycode="+(position+23));
+					etEditText.setHint("keycode="+(position+201));
 					nameString =  mAppList.get(position).get(
 							keyString[1]).toString().trim();
 			    etEditText.setText(nameString);

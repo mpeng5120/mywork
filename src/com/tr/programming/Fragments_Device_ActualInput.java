@@ -5,11 +5,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
 import wifiRunnablesAndChatlistener.PlcDataQueryRunnable;
 import wifiRunnablesAndChatlistener.WatchRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import com.dbutils.ArrayListBound;
 import com.tr.R;
 

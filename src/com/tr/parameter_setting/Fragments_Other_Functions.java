@@ -7,61 +7,44 @@ import java.util.Map;
 import wifiProtocol.WifiReadDataFormat;
 import wifiProtocol.WifiReadMassiveDataFormat;
 import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
-import wifiRunnablesAndChatlistener.DelayCount;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.KeyCodeSend;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import com.dbutils.ArrayListBound;
 import com.dbutils.Constans;
 import com.explain.HexDecoding;
-import com.explain.TableToBinary;
 import com.tr.R;
-import com.tr.main.TR_Main_Activity;
-import com.tr.maintainguide.Fragments_maintain.MyAdapter_Alarm;
-import com.tr.maintainguide.Fragments_maintain.MyAdapter_Alarmzb;
-import com.tr.maintainguide.Fragments_maintain.MyAdapter_IO;
-import com.tr.maintainguide.Fragments_maintain.MyAdapter_Version;
-import com.tr.programming.SemicolonTokenizer;
 import com.wifiexchange.ChatListener;
 import com.wifiexchange.WifiSetting_Info;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.pm.ActivityInfo;
+import android.text.InputFilter;
 import android.text.method.NumberKeyListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
-import android.view.KeyEvent;
-
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.MultiAutoCompleteTextView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
 public class Fragments_Other_Functions extends Fragment {
@@ -88,8 +71,9 @@ public class Fragments_Other_Functions extends Fragment {
 	private EditText layoutAddress;
 	private EditText layoutLength;
 	private int address;
-	private CheckBox layoutCheckBox1;
-	private CheckBox layoutCheckBox2;
+	private RadioGroup radioGroup_jz;
+	private RadioButton rbtn_sl;
+	private RadioButton rbtn_s;
 /*	RadioGroup radioGroup_jz;
 	RadioButton rbtn_sl;
 	RadioButton rbtn_s;*/
@@ -457,79 +441,132 @@ public class Fragments_Other_Functions extends Fragment {
 			public void onClick(View v) {
 
 				
-					final View view_getdata = View.inflate(getActivity(),
-							R.layout.parameter_setting_other_functions, null);
-					final AlertDialog dialog_password = new AlertDialog.Builder(
-							getActivity())
-							.setTitle("提取数据")
-							.setView(view_getdata)
-							.setPositiveButton("确定",
-									new DialogInterface.OnClickListener() {
-										public void onClick(DialogInterface dialog,int which) {
-											if(layoutAddress.getText().toString().equals("")){
-												Toast.makeText(getActivity(), "地址为空，请重新输入", Toast.LENGTH_SHORT).show();
-												return;
-											}
-											if(layoutLength.getText().toString().equals("")){
-												Toast.makeText(getActivity(), "长度为空，请重新输入", Toast.LENGTH_SHORT).show();
-												return;
-											}
-											try {
-											if (layoutCheckBox1.isChecked()&&!(layoutCheckBox2.isChecked())) {
-												if(layoutAddress.getText().toString().length()!=8){
-													Toast.makeText(getActivity(), "地址的长度有误，请重新输入", Toast.LENGTH_SHORT).show();
-													return;
-												}
-												int j = 0, k = 0;
-												int data = 0;
-												for (int i = layoutAddress.getText().toString().length()-1; i >=0; i--) {
-													if(k<8){
-													j = Integer.valueOf((layoutAddress.getText().toString().substring(i,i + 1)));
-													data = data+ (int) (j * Math.pow(16, k));
-													}
-													k++;
-												}
-												address = data;
-											} else {
-												address = Integer.parseInt(layoutAddress.getText().toString());
-											}
-											System.out.println("address="+ address);
-											System.out.println("length="+layoutLength.getText().toString());
-											formatReadMessage = new WifiReadMassiveDataFormat(address, Integer.parseInt(layoutLength.getText().toString()));
-											
-												sendDataRunnable=new SendDataRunnable(formatReadMessage, getActivity());
-
-												sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据读取完毕",readgetDataFinishTodo);
-
-												sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
-
-												getActivity().runOnUiThread(sendDataRunnable);
-												} catch (Exception e) {
-												// TODO: handle exception
-													Toast.makeText(getActivity(), "数据有误，请重新输入", Toast.LENGTH_SHORT).show();
-											}
+				final View view_getdata = View.inflate(getActivity(),
+						R.layout.parameter_setting_other_functions, null);
+				final AlertDialog dialog_password = new AlertDialog.Builder(
+						getActivity())
+						.setTitle("提取数据")
+						.setView(view_getdata)
+						.setPositiveButton("确定",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,int which) {
+										if(layoutAddress.getText().toString().equals("")){
+											Toast.makeText(getActivity(), "地址为空，请重新输入", Toast.LENGTH_SHORT).show();
+											return;
 										}
-									}).setNegativeButton("取消",null).show();
-					layoutCheckBox1 = (CheckBox) dialog_password.findViewById(R.id.checkBox1);
-					if(layoutCheckBox1==null){
-						return;
-					}
-					layoutCheckBox2 = (CheckBox) dialog_password.findViewById(R.id.checkBox2);
-					if(layoutCheckBox2==null){
-						return;
-					}
-					layoutAddress = (EditText) dialog_password.findViewById(R.id.editText_address);
-					if (layoutAddress == null) {
-						return;
-					}
-					layoutLength = (EditText) dialog_password.findViewById(R.id.editText_length);
-					if (layoutLength == null) {
-						return;
-					}
-					return;
-				
+										if(layoutLength.getText().toString().equals("")){
+											Toast.makeText(getActivity(), "长度为空，请重新输入", Toast.LENGTH_SHORT).show();
+											return;
+										}
+										try {
+										if (rbtn_sl.isChecked()) {
+											if(layoutAddress.getText().toString().length()!=8){
+												Toast.makeText(getActivity(), "地址的长度有误，请重新输入", Toast.LENGTH_SHORT).show();
+												return;
+											}
+											int j = 0, k = 0;
+											String valuestr="";
+											int data = 0;
+											for (int i = layoutAddress.getText().toString().length()-1; i >=0; i--) {
+												if(k<8){
+													valuestr=layoutAddress.getText().toString().substring(i,i + 1);
+													if(valuestr.equalsIgnoreCase("A")){
+														j = 10;
+													}else if(valuestr.equalsIgnoreCase("B")){
+														j = 11;
+													}else if(valuestr.equalsIgnoreCase("C")){
+														j = 12;
+													}else if(valuestr.equalsIgnoreCase("D")){
+														j = 13;
+													}else if(valuestr.equalsIgnoreCase("E")){
+														j = 14;
+													}else if(valuestr.equalsIgnoreCase("F")){
+														j = 15;
+													}else{
+														j = Integer.valueOf(valuestr);
+													}
+												    data = data+ (int) (j * Math.pow(16, k));
+												}
+												k++;
+											}
+											address = data;
+										} else {
+											address = Integer.parseInt(layoutAddress.getText().toString());
+										}
+										System.out.println("address="+ address);
+										System.out.println("length="+layoutLength.getText().toString());
+										formatReadMessage = new WifiReadMassiveDataFormat(address, Integer.parseInt(layoutLength.getText().toString()));
+										
+											sendDataRunnable=new SendDataRunnable(formatReadMessage, getActivity());
 
-			}
+											sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据读取完毕",readgetDataFinishTodo);
+
+											sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+
+											getActivity().runOnUiThread(sendDataRunnable);
+											} catch (Exception e) {
+											// TODO: handle exception
+												Toast.makeText(getActivity(), "数据有误，请重新输入", Toast.LENGTH_SHORT).show();
+										}
+									}
+								}).setNegativeButton("取消",null).show();
+				radioGroup_jz=(RadioGroup) dialog_password.findViewById(R.id.radioGroup_jz);
+				rbtn_sl=(RadioButton) dialog_password.findViewById(R.id.radio_sl);
+				rbtn_s=(RadioButton) dialog_password.findViewById(R.id.radio_s);
+				if(radioGroup_jz==null){return;}
+				if(rbtn_sl==null){return;}
+				if(rbtn_s==null){return;}
+				
+				layoutAddress = (EditText) dialog_password.findViewById(R.id.editText_address);
+				if (layoutAddress == null) {
+					return;
+				}
+				layoutLength = (EditText) dialog_password.findViewById(R.id.editText_length);
+				if (layoutLength == null) {
+					return;
+				}
+				layoutAddress.setHint("输入8位十六进制的数据");
+				layoutLength.setHint("输入十进制的数据");
+				radioGroup_jz.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+					@Override
+					public void onCheckedChanged(RadioGroup group, int checkedId) {
+						if(checkedId==R.id.radio_sl){
+							layoutAddress.setHint("输入8位十六进制的数据");
+							layoutAddress.setFilters(new InputFilter[]{new InputFilter.LengthFilter(8)});
+							layoutAddress.setKeyListener(new NumberKeyListener() {
+								@Override
+								protected char[] getAcceptedChars() {
+									return new char[] { '1', '2', '3', '4', '5', '6', '7',
+											'8', '9', '0', 'A','B','C','D','E','F',
+											'a','b','c','d','e','f'};
+								}
+
+								@Override
+								public int getInputType() {
+									return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+								}
+							});
+						}else{
+							layoutAddress.setHint("输入十进制的数据");
+							layoutAddress.setKeyListener(new NumberKeyListener() {
+								@Override
+								protected char[] getAcceptedChars() {
+									return new char[] { '1', '2', '3', '4', '5', '6', '7',
+											'8', '9', '0'};
+								}
+
+								@Override
+								public int getInputType() {
+									return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+								}
+							});
+						}
+					}
+				});
+				return;
+			
+
+		}
 		});
 		
 		//时效设定

@@ -8,34 +8,16 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.awt.*;   
-import javax.*;
-
-
-import wifiProtocol.WifiReadDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
-import wifiRunnablesAndChatlistener.FinishRunnable;
-import wifiRunnablesAndChatlistener.KeyCodeSend;
-import wifiRunnablesAndChatlistener.NormalChatListenner;
-import wifiRunnablesAndChatlistener.PlcDataQueryRunnable;
-import wifiRunnablesAndChatlistener.SendDataRunnable;
 import wifiRunnablesAndChatlistener.WatchRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import com.dbutils.ArrayListBound;
 import com.dbutils.Constans;
 import com.explain.NCTranslate;
-import com.explain.TableTranslate;
 import com.tr.R;
 import com.tr.programming.Fragments_Device_ActualInput.lockListener;
-import com.tr.programming.Fragments_NCedit1.MyAdapter;
-
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -44,19 +26,15 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.Display;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.View.OnLongClickListener;
-import android.view.WindowManager.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup.OnCheckedChangeListener;
@@ -69,7 +47,6 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import awesomeWatch.TableWatch;
 
 public class Fragments_NCedit5 extends Fragment {
 	

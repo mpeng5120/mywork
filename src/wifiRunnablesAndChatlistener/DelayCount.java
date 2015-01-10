@@ -20,7 +20,6 @@ public class DelayCount extends CountDownTimer {
 	private ListView tempListView;
 	
 	private String selectstrString;
-	private PositionQueryRunnable positionQueryRunnable;
 	//private PositionQueryRunnable positionQueryRunnable=new PositionQueryRunnable(null, null, null, null, null, null);
 	
 	public DelayCount(long millisInFuture, long countDownInterval,Activity temp,ListView tempListView,String selectFlag) {     
@@ -35,10 +34,7 @@ public class DelayCount extends CountDownTimer {
 	}     
 	
 	public void destroy() {
-		if(positionQueryRunnable==null){
-			return;
-		}
-		positionQueryRunnable.destroy();
+
 	}
 
 	@Override     
@@ -51,17 +47,6 @@ public class DelayCount extends CountDownTimer {
                         	System.out.println("tempListView.getChildAt(0)==null");
                         }
                         
-						positionQueryRunnable = new PositionQueryRunnable(
-							targetActivity, 
-							(TextView)(tempListView.getChildAt(0).findViewById(R.id.currentPos_free_setting)),
-							(TextView)(tempListView.getChildAt(1).findViewById(R.id.currentPos_free_setting)),
-							(TextView)(tempListView.getChildAt(2).findViewById(R.id.currentPos_free_setting)),
-							(TextView)(tempListView.getChildAt(3).findViewById(R.id.currentPos_free_setting)),
-							(TextView)(tempListView.getChildAt(4).findViewById(R.id.currentPos_free_setting)));
-						
-					if(positionQueryRunnable==null){
-						return;
-					}
 					if((tempListView.getChildAt(0).findViewById(R.id.currentPos_free_setting))==null){
 						return;
 					}
@@ -77,7 +62,7 @@ public class DelayCount extends CountDownTimer {
 					if((tempListView.getChildAt(4).findViewById(R.id.currentPos_free_setting))==null){
 						return;
 					}
-					 new Thread(positionQueryRunnable).start();
+				
 					
 			} else if(selectstrString.equals("counter")){
 				new Thread(new CounterQueryRunnable(targetActivity, tempListView)).start();

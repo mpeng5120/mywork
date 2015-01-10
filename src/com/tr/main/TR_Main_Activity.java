@@ -23,7 +23,6 @@ import wifiRunnablesAndChatlistener.KeyCodeSend;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
 import wifiRunnablesAndChatlistener.WatchRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
 import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
@@ -90,6 +89,9 @@ import com.explain.HexDecoding;
 import com.explain.NCTranslate;
 import com.tr.ExitTR;
 import com.tr.R;
+import com.tr.maintainguide.Fragments_maintain.MyAdapter_Alarm;
+import com.tr.maintainguide.Fragments_maintain.MyAdapter_IO;
+import com.tr.maintainguide.Fragments_maintain.MyAdapter_Version;
 import com.tr.maintainguide.TR_MaintainGuide_Activity;
 import com.tr.newpragram.ListAdapter;
 import com.tr.newpragram.NewPragramActivity;
@@ -193,11 +195,6 @@ public class TR_Main_Activity extends Activity {
 
 	private static boolean firstOpen = true;
 	public static SharedPreferences sharedPreference_openedDir;
-	//private PositionQueryRunnable positionQueryRunnable;
-	//private AlarmQueryRunnable alarmQueryRunnable;
-	//private PositionQueryRunnable cntCycQueryRunnable;
-	private ledRunnable ledrunnable;
-	//private WifiConnectRunnable wifiConnectRunnable;
 	private WifiReadDataFormat formatReadMessage;
 	private SendDataRunnable sendDataRunnable;
 	private byte[] getData;
@@ -219,6 +216,8 @@ public class TR_Main_Activity extends Activity {
 	private int Almallnum;// 当前伺服总数
 	private int AlmCP;// 当前伺服参数编号
 	
+	private WifiReadDataFormat formatReadusermode;
+	private SendDataRunnable sendDatausermodeRunnable;
 	private SendDataRunnable sendDataioRunnable;
 	private WifiReadDataFormat formatReadio;
 	private  ChatListener ioDataFeedback ;
@@ -312,7 +311,16 @@ public class TR_Main_Activity extends Activity {
 		Message msg = new Message() ;
 		msg.what = 44;
 		mHandler.sendMessage(msg);	
-		Log.e("mpeng","main onResume");
+		list_alarmzb= ArrayListBound.getAlarmzbListData();
+		new Thread() {
+			public void run() {
+				list_version = ArrayListBound.getVersionListData();
+				list_alarm = ArrayListBound.getAlarmListData();
+				list_io = ArrayListBound.getIOListData();
+			   
+			}
+		}.start();
+
 
 			BR = new UpdateLedReceiver();
 	        IntentFilter filter = new IntentFilter();
@@ -1406,10 +1414,6 @@ QueryArmDataFeedback = new ChatListener() {
 					}
 			
 		};	
-		list_version = ArrayListBound.getVersionListData();
-		list_alarm = ArrayListBound.getAlarmListData();
-		list_io =    ArrayListBound.getIOListData();
-	    list_alarmzb= ArrayListBound.getAlarmzbListData();
 	}
 	class cLooperThread extends Thread
 	{
@@ -3014,275 +3018,256 @@ QueryArmDataFeedback = new ChatListener() {
 
 	};*/
 
-	/**
-	 * 原点模式Listener
-	 */
-	public OnClickListener mode_origin_listener = new OnClickListener() {
-
-		@Override
-		public void onClick(View v) {
-			if (!clicked_btn_origin) {
-
-				// 发送keycode=2
-				KeyCodeSend.send(2, TR_Main_Activity.this);
-                //zd_led.setVisibility(View.GONE);
-				clicked_btn_manual = false;
-				clicked_btn_origin = true;
-				clicked_btn_step = false;
-				clicked_btn_automatic = false;
-				// 删除之前我们定义的通知
-				NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-				notificationManager.cancel(manual_ID);
-
-			}
-			else
-			{
-				KeyCodeSend.send(2, TR_Main_Activity.this);
-			}
-			//if(checked_origin_start_stop==false){
-			new AlertDialog.Builder(TR_Main_Activity.this)
-			.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executeydcz)
-			.setPositiveButton(R.string.T_titleexecute,
-					new DialogInterface.OnClickListener() {
+	//获取返回的数据后进行的UI操作
+			private final Runnable originDataFinishTodo = new Runnable(){
 				@Override
-				public void onClick(DialogInterface dialog,
-						int which) {
+				public void run() {
 					// TODO Auto-generated method stub
-					//checked_origin_start_stop = true;
-					KeyCodeSend.send(5, TR_Main_Activity.this);
+					//对于返回的36字节
+					//发送正确且完成
+					//处理返回的数据	
+					getData=new byte[formatReadusermode.getLength()];
+					//获取返回的数据，从第八位开始拷贝数据
+					if( formatReadusermode.getFinalData() != null)  
+					{
+					   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+					   int zjz=(int)(getData[0]&0x0F);
+					   getData=HexDecoding.int2byte((int)(zjz|0x40));
+					   try{
+					    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+	                    sendDataRunnable=new SendDataRunnable(formatSendMessage, TR_Main_Activity.this);
+						sendDataFinishRunnable=new FinishRunnable(TR_Main_Activity.this);
+						sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+						runOnUiThread(sendDataRunnable);
+					   } catch (Exception e) {
+						   e.printStackTrace();
+					   }
+				    }
 				}
+			};
+			
+			private final Runnable stepDataFinishTodo = new Runnable(){
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					//对于返回的36字节
+					//发送正确且完成
+					//处理返回的数据	
+					getData=new byte[formatReadusermode.getLength()];
+					//获取返回的数据，从第八位开始拷贝数据
+					if( formatReadusermode.getFinalData() != null)  
+					{
+					   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+					   int zjz=(int)(getData[0]&0x0F);
+					   getData=HexDecoding.int2byte((int)(zjz|0x80));
+					   try{
+					    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+	                    sendDataRunnable=new SendDataRunnable(formatSendMessage, TR_Main_Activity.this);
+						sendDataFinishRunnable=new FinishRunnable(TR_Main_Activity.this);
+						sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+						runOnUiThread(sendDataRunnable);
+					   } catch (Exception e) {
+						   e.printStackTrace();
+					   }
+				    }
+				}
+			};
+			
+			private final Runnable automaticDataFinishTodo = new Runnable(){
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					//对于返回的36字节
+					//发送正确且完成
+					//处理返回的数据	
+					getData=new byte[formatReadusermode.getLength()];
+					//获取返回的数据，从第八位开始拷贝数据
+					if( formatReadusermode.getFinalData() != null)  
+					{
+					   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+					   int zjz=(int)(getData[0]&0x0F);
+					   getData=HexDecoding.int2byte((int)(zjz|0x20));
+					   try{
+					    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+	                    sendDataRunnable=new SendDataRunnable(formatSendMessage, TR_Main_Activity.this);
+						sendDataFinishRunnable=new FinishRunnable(TR_Main_Activity.this);
+						sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+						runOnUiThread(sendDataRunnable);
+					   } catch (Exception e) {
+						   e.printStackTrace();
+					   }
+				    }
+				}
+			};
+		/**
+		 * 原点模式Listener
+		 */
+		public OnClickListener mode_origin_listener = new OnClickListener() {
 
-			}).setNegativeButton(R.string.T_titlecancel,null).show();
-			/*}else{
+			@Override
+			public void onClick(View v) {
+				if (WifiSetting_Info.mClient == null) {
+					Toast.makeText(TR_Main_Activity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				if (!clicked_btn_origin) {
+					clicked_btn_manual = false;
+					clicked_btn_origin = true;
+					clicked_btn_step = false;
+					clicked_btn_automatic = false;
+					// 删除之前我们定义的通知
+					NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+					notificationManager.cancel(manual_ID);
+				}
+				
+				formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+				try {
+					sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,TR_Main_Activity.this);
+					sendDataFinishRunnable=new FinishRunnable(TR_Main_Activity.this,originDataFinishTodo);
+					sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+					runOnUiThread(sendDatausermodeRunnable);
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				
+				//if(checked_origin_start_stop==false){
 				new AlertDialog.Builder(TR_Main_Activity.this)
-				.setTitle("操作提示").setMessage("是否停止原点操作？")
-				.setPositiveButton("停止",
+				.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executeydcz)
+				.setPositiveButton(R.string.T_titleexecute,
 						new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog,
 							int which) {
 						// TODO Auto-generated method stub
-						checked_origin_start_stop = false;
+						//checked_origin_start_stop = true;
 						KeyCodeSend.send(5, TR_Main_Activity.this);
 					}
 
-				}).setNegativeButton("取消",null).show();
-			}*/
-				}
-	};
-
-	/**
-	 * 步进模式Listener
-	 */
-	public OnClickListener mode_step_listener = new OnClickListener() {
-
-		@Override
-		public void onClick(View v) {
-			if (!clicked_btn_step) {
-
-				// 发送keycode=3
-				KeyCodeSend.send(3, TR_Main_Activity.this);
-				//zd_led.setVisibility(View.GONE);
-				clicked_btn_manual = false;
-				clicked_btn_origin = false;
-				clicked_btn_step = true;
-				clicked_btn_automatic = false;
-			/*	// 步进模式对话框
-				new AlertDialog.Builder(TR_Main_Activity.this)
-				.setTitle("步进模式")
-				// 设置标题
-				.setMessage(R.string.main_mode_step_message)
-				// 设置内容
-				.setPositiveButton("连续STEP",
-						new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog,
-							int which) {
-						// TODO Auto-generated method stub
-						KeyCodeSend.send(11,
-								TR_Main_Activity.this);
-						if(checked_step_start_stop==false){
-							new AlertDialog.Builder(TR_Main_Activity.this)
-							.setTitle("操作提示").setMessage("是否开始连续步进操作？")
-							.setPositiveButton("开始",
-									new DialogInterface.OnClickListener() {
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									// TODO Auto-generated method stub
-									checked_step_start_stop = true;
-									KeyCodeSend.send(5, TR_Main_Activity.this);
-								}
-
-							}).setNegativeButton("取消",null).show();
-							}else{
-								new AlertDialog.Builder(TR_Main_Activity.this)
-								.setTitle("操作提示").setMessage("是否停止连续步进操作？")
-								.setPositiveButton("停止",
-										new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialog,
-											int which) {
-										// TODO Auto-generated method stub
-										checked_step_start_stop = false;
-										KeyCodeSend.send(5, TR_Main_Activity.this);
-									}
-
-								}).setNegativeButton("取消",null).show();
-							}
-					}
-
-				}) // 设置连续STEP按钮
-				.setNegativeButton("单步STEP",
-						new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog,
-							int which) {
-						// TODO Auto-generated method stub
-						KeyCodeSend.send(12,
-								TR_Main_Activity.this);
-						if(checked_step_start_stop==false){
-							new AlertDialog.Builder(TR_Main_Activity.this)
-							.setTitle("操作提示").setMessage("是否开始单步步进操作？")
-							.setPositiveButton("开始",
-									new DialogInterface.OnClickListener() {
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									// TODO Auto-generated method stub
-									checked_step_start_stop = true;
-									KeyCodeSend.send(5, TR_Main_Activity.this);
-								}
-
-							}).setNegativeButton("取消",null).show();
-							}else{
-								new AlertDialog.Builder(TR_Main_Activity.this)
-								.setTitle("操作提示").setMessage("是否停止单步步进操作？")
-								.setPositiveButton("停止",
-										new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialog,
-											int which) {
-										// TODO Auto-generated method stub
-										checked_step_start_stop = false;
-										KeyCodeSend.send(5, TR_Main_Activity.this);
-									}
-
-								}).setNegativeButton("取消",null).show();
-							}
-					}
-				}) // 设置单步STEP按钮
-				.show();*/
-				// 删除之前我们定义的通知
-				NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-				notificationManager.cancel(manual_ID);
-
-			}
-			else
-			{
-				KeyCodeSend.send(3, TR_Main_Activity.this);
-			/*	if(checked_step_start_stop==false){
+				}).setNegativeButton(R.string.T_titlecancel,null).show();
+				/*}else{
 					new AlertDialog.Builder(TR_Main_Activity.this)
-					.setTitle("操作提示").setMessage("是否开始步进操作？")
-					.setPositiveButton("开始",
+					.setTitle("操作提示").setMessage("是否停止原点操作？")
+					.setPositiveButton("停止",
 							new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog,
 								int which) {
 							// TODO Auto-generated method stub
-							checked_step_start_stop = true;
+							checked_origin_start_stop = false;
 							KeyCodeSend.send(5, TR_Main_Activity.this);
 						}
 
 					}).setNegativeButton("取消",null).show();
-					}else{
-						new AlertDialog.Builder(TR_Main_Activity.this)
-						.setTitle("操作提示").setMessage("是否停止步进操作？")
-						.setPositiveButton("停止",
-								new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-								// TODO Auto-generated method stub
-								checked_step_start_stop = false;
-								KeyCodeSend.send(5, TR_Main_Activity.this);
-							}
-
-						}).setNegativeButton("取消",null).show();
-					}*/
-			}
-			new AlertDialog.Builder(TR_Main_Activity.this)
-			.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executebjcz)
-			.setPositiveButton(R.string.T_titleonestepexecute,
-					new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog,
-						int which) {
-					// TODO Auto-generated method stub
-					KeyCodeSend.send(5, TR_Main_Activity.this);
-				}
-
-			}).setNegativeButton(R.string.T_titlecancel,null).show();
-	
+				}*/
 					}
-	};
+		};
 
-	/**
-	 * 自动模式Listener
-	 */
-	public OnClickListener mode_automatic_listener = new OnClickListener() {
+		/**
+		 * 步进模式Listener
+		 */
+		public OnClickListener mode_step_listener = new OnClickListener() {
 
-		@Override
-		public void onClick(View v) {
-			if (!clicked_btn_automatic) {
-				// 发送keycode=4
-				KeyCodeSend.send(4, TR_Main_Activity.this);
-				//zd_led.setVisibility(View.VISIBLE);
-				clicked_btn_manual = false;
-				clicked_btn_origin = false;
-				clicked_btn_step = false;
-				clicked_btn_automatic = true;
-				// 删除之前我们定义的通知
-				NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-				notificationManager.cancel(manual_ID);
-
-			}
-			else
-			{
-				KeyCodeSend.send(4, TR_Main_Activity.this);
-				
-			}
-			//if(checked_automatic_start_stop==false){
-			new AlertDialog.Builder(TR_Main_Activity.this)
-			.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executezdcz)
-			.setPositiveButton(R.string.T_titleexecute,
-					new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog,
-						int which) {
-					// TODO Auto-generated method stub
-					//checked_automatic_start_stop = true;
-					KeyCodeSend.send(5, TR_Main_Activity.this);
+			@Override
+			public void onClick(View v) {
+				if (WifiSetting_Info.mClient == null) {
+					Toast.makeText(TR_Main_Activity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+					return;
 				}
-
-			}).setNegativeButton(R.string.T_titlecancel,null).show();
-		/*	}else{
+				if (!clicked_btn_step) {
+					clicked_btn_manual = false;
+					clicked_btn_origin = false;
+					clicked_btn_step = true;
+					clicked_btn_automatic = false;
+					// 删除之前我们定义的通知
+					NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+					notificationManager.cancel(manual_ID);
+				}
+				formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+				try {
+					sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,TR_Main_Activity.this);
+					sendDataFinishRunnable=new FinishRunnable(TR_Main_Activity.this,stepDataFinishTodo);
+					sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+					runOnUiThread(sendDatausermodeRunnable);
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
 				new AlertDialog.Builder(TR_Main_Activity.this)
-				.setTitle("操作提示").setMessage("是否停止自动操作？")
-				.setPositiveButton("停止",
+				.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executebjcz)
+				.setPositiveButton(R.string.T_titleonestepexecute,
 						new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog,
 							int which) {
 						// TODO Auto-generated method stub
-						checked_automatic_start_stop = false;
 						KeyCodeSend.send(5, TR_Main_Activity.this);
 					}
 
-				}).setNegativeButton("取消",null).show();
-			}*/
+				}).setNegativeButton(R.string.T_titlecancel,null).show();
+		
+						}
+		};
+
+		/**
+		 * 自动模式Listener
+		 */
+		public OnClickListener mode_automatic_listener = new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (WifiSetting_Info.mClient == null) {
+					Toast.makeText(TR_Main_Activity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				if (!clicked_btn_automatic) {
+					clicked_btn_manual = false;
+					clicked_btn_origin = false;
+					clicked_btn_step = false;
+					clicked_btn_automatic = true;
+					// 删除之前我们定义的通知
+					NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+					notificationManager.cancel(manual_ID);
+
+				}
+				formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+				try {
+					sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,TR_Main_Activity.this);
+					sendDataFinishRunnable=new FinishRunnable(TR_Main_Activity.this,automaticDataFinishTodo);
+					sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+					runOnUiThread(sendDatausermodeRunnable);
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				//if(checked_automatic_start_stop==false){
+				new AlertDialog.Builder(TR_Main_Activity.this)
+				.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executezdcz)
+				.setPositiveButton(R.string.T_titleexecute,
+						new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog,
+							int which) {
+						// TODO Auto-generated method stub
+						//checked_automatic_start_stop = true;
+						KeyCodeSend.send(5, TR_Main_Activity.this);
 					}
-	};
+
+				}).setNegativeButton(R.string.T_titlecancel,null).show();
+			/*	}else{
+					new AlertDialog.Builder(TR_Main_Activity.this)
+					.setTitle("操作提示").setMessage("是否停止自动操作？")
+					.setPositiveButton("停止",
+							new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog,
+								int which) {
+							// TODO Auto-generated method stub
+							checked_automatic_start_stop = false;
+							KeyCodeSend.send(5, TR_Main_Activity.this);
+						}
+
+					}).setNegativeButton("取消",null).show();
+				}*/
+						}
+		};
 
 	/**
 	 * 开始停止模式Listener

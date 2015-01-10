@@ -507,7 +507,8 @@ public class TableToBinary {
 						 * result = Integer
 						 * .parseInt(map.get("addressText").toString());
 						 */
-						result = countP_point;
+						//result = countP_point;
+						result =Integer.parseInt(devicename.substring(1));
 					}
 					break;
 				} else if (map.get("symbolNameEditText").toString().charAt(0) == 'P'
@@ -554,7 +555,8 @@ public class TableToBinary {
 								/ Define.MAX_STDPACK_NUM * (countP_point - 1);
 					} else {
 						// 这个result对应此设备名在平板上显示的编号
-						result = countP_point;
+						//result = countP_point;
+						result =Integer.parseInt(devicename.substring(2));
 					}
 					break;
 				} else if (map.get("symbolNameEditText").toString().charAt(0) == 'S'

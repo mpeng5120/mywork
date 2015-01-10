@@ -8,19 +8,15 @@ import java.util.HashMap;
 import wifiProtocol.WifiReadDataFormat;
 import wifiProtocol.WifiReadMassiveDataFormat;
 import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import com.dataInAddress.AddressPublic;
 import com.dbutils.Constans;
 import com.explain.HexDecoding;
 import com.tr.R;
 import com.wifiexchange.ChatListener;
 import com.wifiexchange.WifiSetting_Info;
-
 import android.os.Bundle;
 import android.app.AlertDialog;
 import android.app.Fragment;
@@ -69,8 +65,7 @@ public class Fragments_download_management extends Fragment {
 	private SendDataRunnable sendDataRunnable;
 	private byte[] getData;
 	private  ChatListener mouldDataFeedback ;
-	private ledRunnable ledrunnable;
-	private AlarmQueryRunnable alarmQueryRunnable;
+
 	@Override
 	public void onPause() {
 		// TODO Auto-generated method stub

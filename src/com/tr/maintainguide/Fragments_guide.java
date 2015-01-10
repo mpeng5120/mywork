@@ -1,11 +1,7 @@
 package com.tr.maintainguide;
 
 import java.io.File;
-
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
 import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
-
 import android.app.Fragment;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -30,8 +26,6 @@ public class Fragments_guide extends Fragment{
 	private ImageButton ibtn2;
 	private ImageButton ibtn3;
 	private ImageButton ibtn4;
-	private AlarmQueryRunnable alarmQueryRunnable;
-	private ledRunnable ledrunnable;
 	private posccalmQueryRunnable PosccalmRunnable;
 	private Thread PoccQueryThread;
 	@Override

@@ -7,7 +7,6 @@ import wifiProtocol.WifiSendDataFormat;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.KeyCodeSend;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
-import wifiRunnablesAndChatlistener.PositionQueryRunnable;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
 
 import com.dataInAddress.AddressPublic;
@@ -126,17 +125,24 @@ public class FragmentDetail extends Fragment {
 			if(allpositionList_setting.get(i).contains("SP")){
 				int send_SPaddress=AddressPublic.model_SP_point_Head
 						+(AddressPublic.model_FP_point_Head-AddressPublic.model_SP_point_Head)/Define.MAX_STDPACK_NUM
-						*(TableToBinary.searchAddress(allpositionList_setting.get(i).toString().split("\\s++")[0],false)-1);
+						*(Integer.parseInt((allpositionList_setting.get(i).toString().split("\\s++")[0]).trim().substring(2))-1);				
 				toaddress.add(send_SPaddress);
 				tolength.add(20);
 			}else if(allpositionList_setting.get(i).contains("FP")){
-				int send_FPaddress=TableToBinary.searchAddress(allpositionList_setting.get(i).toString().split("\\s++")[0],true);
+				String devicename=allpositionList_setting.get(i).toString().split("\\s++")[0];
+				devicename=devicename.trim();
+				int send_FPaddress=0;
+				if(devicename.equalsIgnoreCase("FP001")){
+					send_FPaddress = 0x20003AB0;
+				}else if(devicename.equalsIgnoreCase("FP002")){
+					send_FPaddress = 0x20003AC6;
+				}
 				toaddress.add(send_FPaddress);
 				tolength.add(16);
 			}else if(allpositionList_setting.get(i).contains("P")){
 				int send_Paddress=AddressPublic.model_P_point_Head
 						+(AddressPublic.model_SP_point_Head-AddressPublic.model_P_point_Head)/Define.MAX_STDPOINT_NUM
-						*(TableToBinary.searchAddress(allpositionList_setting.get(i).toString().split("\\s++")[0],false)-1);
+						*(Integer.parseInt((allpositionList_setting.get(i).toString().split("\\s++")[0]).trim().substring(1))-1);
 				toaddress.add(send_Paddress);
 				tolength.add(20);
 			}else{
@@ -617,7 +623,7 @@ OnClickListener DetailBtnListener = new OnClickListener() {
 	    	Toast.makeText(getActivity(), "请选择位置", Toast.LENGTH_SHORT).show();
 	    	return;
 	    }
-	    String name = allpositionList_setting.get(pos).toString();
+	    String name = allpositionList_setting.get(pos).toString().trim();
 	    bundle.putString("PosType", name);//当前是P SP.FP
 	    /*if(name.equals("P"))
 	    	bundle.putString("PosType", "PLIST");//当前是P SP.FP
@@ -671,9 +677,7 @@ private void initData()
 				if(!Config.list_pname.contains(operatstr.substring(operatstr.indexOf("P"), operatstr.length()))){
 					Config.list_pname.add(operatstr.substring(operatstr.indexOf("P"), operatstr.length()));
 				}
-				if(Config.pspfpaxle[Integer.parseInt(operatstr.substring(operatstr.indexOf("P")+1))-1]!=0){
-					continue;
-				}
+				
 				chs=operatstr.toCharArray();
 				 ch=' ';
 				 allA=0;
@@ -681,20 +685,11 @@ private void initData()
 						if(chs[i1]=='A'){
 							ch=chs[i1+1];
 							int index=(int)ch-49;
-							if(index==0){
-								allA=allA+(int) (Math.pow(2, 0));
+							if((Config.pspfpaxle[Integer.parseInt(operatstr.substring(operatstr.indexOf("P")+1))-1]&(int)(Math.pow(2, index)))==(int)(Math.pow(2, index))){
+								continue;
 							}
-							if(index==1){
-								allA=allA+(int) (Math.pow(2, 1));
-							}
-							if(index==2){
-								allA=allA+(int) (Math.pow(2, 2));
-							}
-							if(index==3){
-								allA=allA+(int) (Math.pow(2, 3));
-							}
-							if(index==4){
-								allA=allA+(int) (Math.pow(2, 4));
+							if(index>=0&&index<=4){
+								allA=allA+(int) (Math.pow(2, index));
 							}
 						}else if(chs[i1]=='P'||chs[i1]=='p'){
 							Config.pspfpaxle[Integer.parseInt(operatstr.substring(i1+1))-1]+=HexDecoding.int2byte(allA)[0];
@@ -1072,6 +1067,11 @@ public class MyAdapter extends BaseAdapter {
 				@Override
 				public void onClick(DialogInterface arg0,int arg1) {
 					String editString = etEditText.getText().toString().trim();
+					try{
+					    Double.parseDouble(editString);
+					}catch(Exception e){
+						return;
+					}
 					double editDouble=0;
 
 					if (!editString.equals("") ) {//不为空且不以点号开始，继续检查
@@ -1081,7 +1081,7 @@ public class MyAdapter extends BaseAdapter {
 									String[] editStrings = editString.split("\\.");
 									if (2 == editStrings.length) {
 										editDouble = Double.parseDouble(editString);
-										if (Math.abs(editDouble) >= 100000) {
+										if (Math.abs(editDouble) >99999.9) {
 											Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
 											editString = "";
 											return;
@@ -1095,7 +1095,7 @@ public class MyAdapter extends BaseAdapter {
 									}
 								} else {
 									editDouble = Double.parseDouble(editString);
-									if (Math.abs(editDouble) >= 100000) {
+									if (Math.abs(editDouble) >99999.9) {
 										Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
 										editString = "";
 										return;
@@ -1127,29 +1127,28 @@ public class MyAdapter extends BaseAdapter {
 					if(name_String.contains("SP")){
 						send_address=AddressPublic.model_SP_point_Head
 								+(AddressPublic.model_FP_point_Head-AddressPublic.model_SP_point_Head)/Define.MAX_STDPACK_NUM
-								*(TableToBinary.searchAddress(name_String.split("\\s++")[0],false)-1);
-
+								*(Integer.parseInt((name_String.split("\\s++")[0]).trim().substring(2))-1);
 						//获取设定速度，加速度，减速度信息,填写数据
 						 temp=new byte[20];
 						//把界面上的值读一遍，填入8个字节的字节数组
 						try {						
 							//防止
-							if (!mAppList.get(position).get("foot_p_setting").toString().equals("")) {
+							if (!mAppList.get(position).get("foot_p_setting").toString().equals("*****.*")) {
 								System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("foot_p_setting").toString())*100)), 0, temp, 0, 4);	
 							}
-							if (!mAppList.get(position).get("productBA_p_setting").toString().equals("")) {
+							if (!mAppList.get(position).get("productBA_p_setting").toString().equals("*****.*")) {
 								System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("productBA_p_setting").toString())*100)), 0, temp, 4, 4);
 
 							}
-							if (!mAppList.get(position).get("productUD_p_setting").toString().equals("")) {
+							if (!mAppList.get(position).get("productUD_p_setting").toString().equals("*****.*")) {
 								System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("productUD_p_setting").toString())*100)), 0, temp, 8, 4);
 
 							}
-							if (!mAppList.get(position).get("feedertroughBA_p_setting").toString().equals("")) {
+							if (!mAppList.get(position).get("feedertroughBA_p_setting").toString().equals("*****.*")) {
 								System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("feedertroughBA_p_setting").toString())*100)), 0, temp, 12, 4);
 
 							}
-							if(!mAppList.get(position).get("feedertroughUD_p_setting").toString().equals("")){
+							if(!mAppList.get(position).get("feedertroughUD_p_setting").toString().equals("*****.*")){
 								System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("feedertroughUD_p_setting").toString())*100)), 0, temp, 16, 4);
 
 							}
@@ -1159,8 +1158,14 @@ public class MyAdapter extends BaseAdapter {
 							// TODO: handle exception
 						  }
 					}else if(name_String.contains("FP")){
-						send_address=TableToBinary.searchAddress(name_String.split("\\s++")[0],true);
-
+						send_address=0;
+						String devicename=name_String.split("\\s++")[0];
+						devicename=devicename.trim();
+						if(devicename.equalsIgnoreCase("FP001")){
+							send_address = 0x20003AB0;
+						}else if(devicename.equalsIgnoreCase("FP002")){
+							send_address = 0x20003AC6;
+						}
 						//获取设定速度，加速度，减速度信息,填写数据
 						 temp=new byte[16];
 						//把界面上的值读一遍，填入8个字节的字节数组
@@ -1193,29 +1198,28 @@ public class MyAdapter extends BaseAdapter {
 					}else if(name_String.contains("P")){
 						send_address=AddressPublic.model_P_point_Head
 								+(AddressPublic.model_SP_point_Head-AddressPublic.model_P_point_Head)/Define.MAX_STDPOINT_NUM
-								*(TableToBinary.searchAddress(name_String.split("\\s++")[0],false)-1);
-
+								*(Integer.parseInt((name_String.split("\\s++")[0]).trim().substring(1))-1);
 					//获取设定速度，加速度，减速度信息,填写数据
 					 temp=new byte[20];
 					//把界面上的值读一遍，填入8个字节的字节数组
 					try {						
 						//防止
-						if (!mAppList.get(position).get("foot_p_setting").toString().equals("")) {
+						if (!mAppList.get(position).get("foot_p_setting").toString().equals("*****.*")) {
 							System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("foot_p_setting").toString())*100)), 0, temp, 0, 4);	
 						}
-						if (!mAppList.get(position).get("productBA_p_setting").toString().equals("")) {
+						if (!mAppList.get(position).get("productBA_p_setting").toString().equals("*****.*")) {
 							System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("productBA_p_setting").toString())*100)), 0, temp, 4, 4);
 
 						}
-						if (!mAppList.get(position).get("productUD_p_setting").toString().equals("")) {
+						if (!mAppList.get(position).get("productUD_p_setting").toString().equals("*****.*")) {
 							System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("productUD_p_setting").toString())*100)), 0, temp, 8, 4);
 
 						}
-						if (!mAppList.get(position).get("feedertroughBA_p_setting").toString().equals("")) {
+						if (!mAppList.get(position).get("feedertroughBA_p_setting").toString().equals("*****.*")) {
 							System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("feedertroughBA_p_setting").toString())*100)), 0, temp, 12, 4);
 
 						}
-						if(!mAppList.get(position).get("feedertroughUD_p_setting").toString().equals("")){
+						if(!mAppList.get(position).get("feedertroughUD_p_setting").toString().equals("*****.*")){
 							System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(mAppList.get(position).get("feedertroughUD_p_setting").toString())*100)), 0, temp, 16, 4);
 
 						}

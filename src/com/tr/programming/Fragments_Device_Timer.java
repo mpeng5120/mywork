@@ -1,26 +1,13 @@
 package com.tr.programming;
-import com.explain.*;
-
 import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import wifiProtocol.WifiReadDataFormat;
-import wifiProtocol.WifiReadMassiveDataFormat;
-import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
-import wifiRunnablesAndChatlistener.FinishRunnable;
-import wifiRunnablesAndChatlistener.NormalChatListenner;
-import wifiRunnablesAndChatlistener.SendDataRunnable;
-import wifiRunnablesAndChatlistener.WatchRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -41,8 +28,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import com.dbutils.ArrayListBound;
 import com.tr.R;
 import com.tr.programming.Fragments_Device_ActualInput.lockListener;
-import com.wifiexchange.ChatListener;
-import com.wifiexchange.WifiSetting_Info;
 
 
 public class Fragments_Device_Timer extends Fragment  {

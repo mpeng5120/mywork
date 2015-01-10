@@ -11,8 +11,8 @@ import wifiProtocol.WifiSendDataFormat;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.KeyCodeSend;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
-import wifiRunnablesAndChatlistener.PositionQueryRunnable;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
+import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 
 import com.dataInAddress.AddressPublic;
 import com.dataInAddress.Define;
@@ -154,8 +154,8 @@ public class FragmentOne extends Fragment {
     @Override
     public void onPause(){
         Log.d(TAG, "GeneralSetting onPause");
-        if(NewPragramActivity.positionQueryRunnable!=null){
-			NewPragramActivity.positionQueryRunnable.destroy();
+        if(NewPragramActivity.PosccalmRunnable!=null){
+			NewPragramActivity.PosccalmRunnable.destroy();
 		}
         super.onPause();
     }
@@ -293,7 +293,7 @@ public class FragmentOne extends Fragment {
 									String[] editStrings = editString.split("\\.");
 									if (2 == editStrings.length) {
 										editDouble = Double.parseDouble(editString);
-										if (Math.abs(editDouble) >= 100000) {
+										if (Math.abs(editDouble) >99999.9) {
 											Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
 											editString = "";
 											return false;
@@ -307,7 +307,7 @@ public class FragmentOne extends Fragment {
 									}
 								} else {
 									editDouble = Double.parseDouble(editString);
-									if (Math.abs(editDouble) >= 100000) {
+									if (Math.abs(editDouble) >99999.9) {
 										Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
 										editString = "";
 										return false;
@@ -660,8 +660,8 @@ public class FragmentOne extends Fragment {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
-					if(NewPragramActivity.positionQueryRunnable!=null){
-						NewPragramActivity.positionQueryRunnable.destroy();
+					if(NewPragramActivity.PosccalmRunnable!=null){
+						NewPragramActivity.PosccalmRunnable.destroy();
 					}
 					Intent IT =new Intent();
 					IT.setAction("goPositionPreview");
@@ -764,13 +764,14 @@ public class FragmentOne extends Fragment {
 				}
 			}
 			
-			if(NewPragramActivity.positionQueryRunnable!=null){
- 	        	NewPragramActivity.positionQueryRunnable.destroy();
+			if(NewPragramActivity.PosccalmRunnable!=null){
+ 	        	NewPragramActivity.PosccalmRunnable.destroy();
 				}
-			if(PositionQueryRunnable.existFlag==false){
-				 NewPragramActivity.positionQueryRunnable=new PositionQueryRunnable(
-							getActivity(),xTextView,yTextView,hTextView,zTextView,lTextView);
-					Thread a1=new Thread(NewPragramActivity.positionQueryRunnable);
+			
+			if(NewPragramActivity.PosccalmRunnable.existFlag==false){
+				 NewPragramActivity.PosccalmRunnable=new posccalmQueryRunnable(
+							getActivity(),xTextView,yTextView,hTextView,zTextView,lTextView,null,null,null,null,null);
+					Thread a1=new Thread(NewPragramActivity.PosccalmRunnable);
 					a1.start();
 				}
 		}catch(Exception e){
@@ -1020,8 +1021,8 @@ public class FragmentOne extends Fragment {
 
 		}
 	    private void swithToFp(){
-		 if(NewPragramActivity.positionQueryRunnable!=null){
-	        	NewPragramActivity.positionQueryRunnable.destroy();
+		 if(NewPragramActivity.PosccalmRunnable!=null){
+	        	NewPragramActivity.PosccalmRunnable.destroy();
 				}
 		FpLayout.setVisibility(View.VISIBLE);
 		PositionLayout.setVisibility(View.GONE);
@@ -1202,8 +1203,8 @@ public class FragmentOne extends Fragment {
 
 	
 	private void swithToSp(){
-		 if(NewPragramActivity.positionQueryRunnable!=null){
-	        	NewPragramActivity.positionQueryRunnable.destroy();
+		 if(NewPragramActivity.PosccalmRunnable!=null){
+	        	NewPragramActivity.PosccalmRunnable.destroy();
 				}
 		FpLayout.setVisibility(View.VISIBLE);
 		PositionLayout.setVisibility(View.GONE);

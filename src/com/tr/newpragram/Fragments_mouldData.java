@@ -17,12 +17,9 @@ import java.util.Iterator;
 import wifiProtocol.WifiReadDataFormat;
 import wifiProtocol.WifiReadMassiveDataFormat;
 import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
@@ -118,13 +115,16 @@ public class Fragments_mouldData extends Fragment {
 	private WifiReadMassiveDataFormat formatReadMessage;
 	private WifiReadDataFormat timeformatReadMessage;
 	private  ChatListener DataFeedback1 ;	
+	private int saveposition;
 	private String saveStrname;
 	private SendDataRunnable modelReadDataRunnable;
 	private FinishRunnable readDataFinishRunnable;
+	private  FinishRunnable sendDataFinishRunnable;
+	private  WifiReadDataFormat formatReadusermode;
+	private  SendDataRunnable sendDatausermodeRunnable;
 	private WifiReadDataFormat mouldformatReadMessage;
 	private SendDataRunnable sendDataRunnable;
 	private byte[] getData;
-	private  ChatListener mouldDataFeedback ;
 	long afterTime;
 	long beforeTime;
 	ArrayList<SendDataRunnable> sendDataRunnables=new ArrayList<SendDataRunnable>();
@@ -421,6 +421,8 @@ public class Fragments_mouldData extends Fragment {
 						//TR_Main_Activity.sharedPreference_openedDir.edit().putString("dir_all", strAll).commit();
 
 						saveStrname=list_mould_setting.get(listselectposition).get("name_mould_setting").toString().trim();
+						saveposition=listselectposition;
+						
 						creatFolderSysytem();
 						
 						 new Thread()
@@ -558,7 +560,9 @@ public class Fragments_mouldData extends Fragment {
 						
 
 						saveStrname=editmouldnamestr.toString().trim();
-						new Thread()
+						saveposition=listselectposition;
+						
+						 new Thread()
 			              {
 			                  public void run()
 			                  {
@@ -678,7 +682,7 @@ public class Fragments_mouldData extends Fragment {
 				new int[] { R.id.num,R.id.num_mould_setting, R.id.name_mould_setting,R.id.note_mould_setting });
 		listView_mould_setting.setAdapter(adapter_mould_setting);
 		
-		mouldDataFeedback = new ChatListener() {
+		new ChatListener() {
 			@Override
 			public void onChat(byte[] message) {
 
@@ -3292,9 +3296,7 @@ public class Fragments_mouldData extends Fragment {
 										}else if((order_MOVE.contains("MOVE")||order_MOVE.contains("MOVEP"))&&operatstr.contains("FP")){
 											
 										}else if((order_MOVE.contains("MOVE")||order_MOVE.contains("MOVEP"))&&operatstr.contains("P")){
-											if(getData2[Integer.parseInt(operatstr.substring(operatstr.indexOf("P")+1))-1]!=0){
-												continue;
-											}
+											
 											chs=operatstr.toCharArray();
 											 ch=' ';
 											 allA=0;
@@ -3302,20 +3304,11 @@ public class Fragments_mouldData extends Fragment {
 													if(chs[i1]=='A'){
 														ch=chs[i1+1];
 														int index=(int)ch-49;
-														if(index==0){
-															allA=allA+(int) (Math.pow(2, 0));
+														if((getData2[Integer.parseInt(operatstr.substring(operatstr.indexOf("P")+1))-1]&(int)(Math.pow(2, index)))==(int)(Math.pow(2, index))){
+															continue;
 														}
-														if(index==1){
-															allA=allA+(int) (Math.pow(2, 1));
-														}
-														if(index==2){
-															allA=allA+(int) (Math.pow(2, 2));
-														}
-														if(index==3){
-															allA=allA+(int) (Math.pow(2, 3));
-														}
-														if(index==4){
-															allA=allA+(int) (Math.pow(2, 4));
+														if(index>=0&&index<=4){
+															allA=allA+(int) (Math.pow(2, index));
 														}
 													}else if(chs[i1]=='P'||chs[i1]=='p'){
 														getData2[Integer.parseInt(operatstr.substring(i1+1))-1]+=HexDecoding.int2byte(allA)[0];
@@ -3383,6 +3376,15 @@ public class Fragments_mouldData extends Fragment {
 											   .setMessage("数据发送完毕   下载共用时 :"+(CompleteTime - WifiSetting_Info.wifiTimeOut)+"ms")
 											   .setPositiveButton("确定", null).show();
 											overflag[0]=0;
+											formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+											try {
+												sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,getActivity());
+												sendDataFinishRunnable=new FinishRunnable(getActivity(),stopDataFinishTodo2);
+												sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+												getActivity().runOnUiThread(sendDatausermodeRunnable);
+											} catch (Exception e) {
+												// TODO: handle exception
+											}
 										}else if(overflag[1]==1){
 											 new AlertDialog.Builder(getActivity()).setTitle("提示")
 											   .setMessage("NC代码为空！")
@@ -3519,8 +3521,32 @@ public class Fragments_mouldData extends Fragment {
 
 	}
 
-	private void downmould(){}
-
+	private  Runnable stopDataFinishTodo2 = new Runnable(){
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
+			{
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x10));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, getActivity());
+				sendDataFinishRunnable=new FinishRunnable(getActivity());
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				getActivity().runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
+	};
 	private void fromsd(){
 		if (WifiSetting_Info.mClient!=null) {
 			try{
@@ -3619,6 +3645,35 @@ public class Fragments_mouldData extends Fragment {
 			getData[(64+address)/8]=(byte)(getData[(64+address)/8]|(item<<((64+address)%8)));
 		}
         Iterator<HashMap<String, Object>> it3 =ArrayListBound.getDevicePositionListData().iterator();
+        byte[] temp=new byte[4*8];
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 0, 4);
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 4, 4);
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 8, 4);
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 12, 4);
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 16, 4);
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 20, 4);
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 24, 4);
+        System.arraycopy(HexDecoding.int2byteArray4(0x7FFFFFFF), 0, temp, 28, 4);
+        byte[] temfp=new byte[3200];
+        for(int i=0;i<100;i++){
+        	 System.arraycopy(temp, 0, temfp, i*32, 32);
+        }
+        byte[] ptempspeed=new byte[3];
+        System.arraycopy(HexDecoding.int2byte(10), 0, ptempspeed, 0, 1);
+        System.arraycopy(HexDecoding.int2byte(1), 0, ptempspeed, 1, 1);
+        System.arraycopy(HexDecoding.int2byte(1), 0, ptempspeed, 2, 1);
+        byte[] sptempspeed=new byte[19];
+        System.arraycopy(HexDecoding.int2byteArray2(1), 0, temp, 0, 2);										
+		System.arraycopy(HexDecoding.int2byteArray2(2), 0, temp, 2, 2);
+		System.arraycopy(HexDecoding.int2byteArray2(3), 0, temp, 6, 2);
+		System.arraycopy(HexDecoding.int2byte(10), 0, temp, 16, 1);
+		System.arraycopy(HexDecoding.int2byte(1), 0, temp, 17, 1);
+		System.arraycopy(HexDecoding.int2byte(1), 0, temp, 18, 1);
+		byte[] fptempspeed=new byte[5];
+		System.arraycopy(HexDecoding.int2byteArray2(3), 0, temp, 0, 2);	
+		System.arraycopy(HexDecoding.int2byte(10), 0, temp, 2, 1);
+		System.arraycopy(HexDecoding.int2byte(1), 0, temp, 3, 1);
+		System.arraycopy(HexDecoding.int2byte(1), 0, temp, 4, 1);
         while (it3.hasNext()) {
         	HashMap<String, Object> map = it3.next();
 			String posname=map.get("symbolNameEditText").toString().trim();
@@ -3637,7 +3692,32 @@ public class Fragments_mouldData extends Fragment {
 			}
         }
 		System.arraycopy(getData,0, byteArray2, 0x0000001C, 48);
-		
+		if(byteArray2.length>=0x00003AEC){
+			for(int i=0;i<200;i++){
+				if(((getData[(64+64+i)/8]>>((64+64+i)%8))&0x01)==0){
+					System.arraycopy(temp,0, byteArray2, 0x000002F0+36*i, 32);
+					System.arraycopy(ptempspeed,0, byteArray2, 0x000002F0+36*i+32, 3);
+				}else{
+					System.arraycopy(HexDecoding.int2byte(1), 0, byteArray2, 0x000002F0+36*i+35, 1);
+				}
+			}
+			for(int i=0;i<8;i++){
+				if(((getData[(64+64+212+i)/8]>>((64+64+212+i)%8))&0x01)==0){
+					System.arraycopy(temp,0, byteArray2, 0x00001F10+84*i, 32);
+					System.arraycopy(sptempspeed,0, byteArray2, 0x00001F10+84*i+64, 19);
+				}else{
+					System.arraycopy(HexDecoding.int2byte(1), 0, byteArray2, 0x00001F10+84*i+83, 1);
+				}
+			}
+			for(int i=0;i<2;i++){
+				if(((getData[(64+64+222+i)/8]>>((64+64+222+i)%8))&0x01)==0){
+					System.arraycopy(temfp,0, byteArray2, 0x000021B0+3200*i, 3200);
+					System.arraycopy(fptempspeed,0, byteArray2, 0x00003AB0+22*i+16, 5);
+				}else{
+					System.arraycopy(HexDecoding.int2byte(1), 0, byteArray2, 0x00003AB0+22*i+21, 1);
+				}
+			}
+		}
 	    //当前模具数组
 		byte[] getData1=new byte[28];
 		String strNum = TR_Main_Activity.sharedPreference_openedDir.getString("dir_num","0");

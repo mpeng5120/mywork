@@ -5,7 +5,35 @@
     android:orientation="vertical" >
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" >
+     <RadioGroup
+            android:id="@+id/radioGroup_jz"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="center"
+            android:orientation="horizontal" >
+
+            <RadioButton
+                android:id="@+id/radio_sl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/parameterSetting_sl" />
+
+            <RadioButton
+                android:id="@+id/radio_s"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="35dp"
+                android:text="@string/parameterSetting_s" />
+        </RadioGroup>
+        </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+         android:layout_gravity="center" >
 
         <TextView
             android:id="@+id/address"
@@ -20,24 +48,15 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_margin="10dp"
-            android:layout_weight="1"
-            android:hint="@string/parameterSetting_editaddress"
-            android:digits="1234567890"
-            android:inputType="phone" >
+            android:layout_weight="1" >
         </EditText>
-			
-        <CheckBox
-            android:id="@+id/checkBox1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="@string/parameterSetting_sl" />
 			
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+         android:layout_gravity="center" >
 
         <TextView
             android:id="@+id/length"
@@ -54,16 +73,9 @@
             android:layout_gravity="center"
             android:layout_margin="10dp"
             android:layout_weight="1"
-            android:hint="@string/parameterSetting_editlength"
             android:digits="1234567890"
             android:inputType="phone" >
         </EditText>
-           <CheckBox
-            android:id="@+id/checkBox2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/parameterSetting_s" 
-            />
 
     </LinearLayout>
   

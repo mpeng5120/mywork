@@ -141,6 +141,11 @@ public class TR_Programming_Activity extends Activity {
 	private AlertDialog KeyMsgDialog = null;
 	private KeyEventReceiver KER;
 	/*******************************************************/
+	private  byte[] getData;
+	private  WifiReadDataFormat formatReadusermode;
+	private  SendDataRunnable sendDatausermodeRunnable;
+	private  FinishRunnable sendDataFinishRunnable;
+	private  WifiSendDataFormat formatSendMessage;
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
@@ -1035,6 +1040,32 @@ public class TR_Programming_Activity extends Activity {
 		}
 		
 	};
+	private  Runnable stopDataFinishTodo2 = new Runnable(){
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
+			{
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x10));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, TR_Programming_Activity.this);
+				sendDataFinishRunnable=new FinishRunnable(TR_Programming_Activity.this);
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
+	};
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -1411,6 +1442,15 @@ public class TR_Programming_Activity extends Activity {
 											   .setMessage("数据发送完毕")
 											   .setPositiveButton("确定", null).show();
 											 overflag[0]=0;
+											 formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+												try {
+													sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,TR_Programming_Activity.this);
+													sendDataFinishRunnable=new FinishRunnable(TR_Programming_Activity.this,stopDataFinishTodo2);
+													sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+													runOnUiThread(sendDatausermodeRunnable);
+												} catch (Exception e) {
+													// TODO: handle exception
+												}
 										}else if(overflag[1]==1){
 											 new AlertDialog.Builder(TR_Programming_Activity.this).setTitle("提示")
 											   .setMessage(NCTranslate.ncindex+"的"+NCTranslate.dname+"设备未选择设定")
@@ -1534,6 +1574,15 @@ public class TR_Programming_Activity extends Activity {
 												   .setMessage("数据发送完毕")
 												   .setPositiveButton("确定", null).show();
 												 overflag[0]=0;
+												 formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+													try {
+														sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,TR_Programming_Activity.this);
+														sendDataFinishRunnable=new FinishRunnable(TR_Programming_Activity.this,stopDataFinishTodo2);
+														sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+														runOnUiThread(sendDatausermodeRunnable);
+													} catch (Exception e) {
+														// TODO: handle exception
+													}
 											}else if(overflag[1]==1){
 												 new AlertDialog.Builder(TR_Programming_Activity.this).setTitle("提示")
 												   .setMessage(TableTranslate.tableindex+"的"+TableTranslate.dname+"设备未选择设定")

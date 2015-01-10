@@ -9,12 +9,9 @@ import java.util.HashMap;
 
 import wifiProtocol.WifiReadDataFormat;
 import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
@@ -111,8 +108,6 @@ public class Fragments_Mechanical_Parameter extends Fragment {
 	//发送数据进程
 	private SendDataRunnable sendDataRunnable;
 	private FinishRunnable sendFinishRunnable;
-	private ledRunnable ledrunnable;
-	private AlarmQueryRunnable alarmQueryRunnable;
 	private WifiReadDataFormat formatReadMessage;
 	private  ChatListener DataFeedback ;
 	@Override

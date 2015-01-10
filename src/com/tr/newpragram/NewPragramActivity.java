@@ -1,21 +1,24 @@
 package com.tr.newpragram;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import wifiProtocol.WifiReadDataFormat;
+import wifiProtocol.WifiSendDataFormat;
+import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.KeyCodeSend;
-import wifiRunnablesAndChatlistener.PositionQueryRunnable;
+import wifiRunnablesAndChatlistener.NormalChatListenner;
+import wifiRunnablesAndChatlistener.SendDataRunnable;
 import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 
 import com.dbutils.ArrayListBound;
 import com.dbutils.Constans;
+import com.explain.HexDecoding;
 import com.tr.R;
 import com.tr.main.TR_Main_Activity;
 import com.tr.maintainguide.TR_MaintainGuide_Activity;
@@ -77,15 +80,13 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 	private    FragmentTransaction FgTransaction;
 	private Handler myHandler;
 	private String myName;
-	
-	public static PositionQueryRunnable positionQueryRunnable;
+
 	private Button ydBtn;
 	private Button zdBtn;
 	private Button dbjBtn;
 	private Button dxhBtn;
 	private TextView myMoudleInfo;
 	private ArrayList<HashMap<String, Object>> list_mould_setting = ArrayListBound.getMouldDataListData();
-	private static boolean clicked_btn_manual = true;
 	private static boolean clicked_btn_origin = false;
 	private static boolean clicked_btn_step = false;
 	private static boolean clicked_btn_automatic = false;
@@ -93,18 +94,21 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 	
 	private ArrayList<String> list_mouldname=new ArrayList<String>();
 	private ArrayList<String> list_mouldnum=new ArrayList<String>();
-	private int saveposition;
 	private String saveStrname;
-	private int listselectposition=0;
 	public static ArrayList<HashMap<String, Object>> nctestlist = null;
 	private AlertDialog nocationDialog;
 	private  ActionBar actionBar;
 	private AlertDialog  KeyMsgDialog;
 	private Thread PoccQueryThread ;
-	private posccalmQueryRunnable  PosccalmRunnable;
-	
-	
+	public static  posccalmQueryRunnable  PosccalmRunnable;	
 	private Bundle arguments = new Bundle(); 	
+	private WifiReadDataFormat formatReadusermode;
+	private SendDataRunnable sendDatausermodeRunnable;
+	private FinishRunnable sendDataFinishRunnable;
+	private WifiSendDataFormat formatSendMessage;
+	private SendDataRunnable sendDataRunnable;
+	private byte[] getData;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
@@ -169,125 +173,257 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 
 	
 
-	/**
-	 * 原点模式Listener
-	 */
-	public OnClickListener mode_origin_listener = new OnClickListener() {
-
+	//获取返回的数据后进行的UI操作
+	private final Runnable originDataFinishTodo = new Runnable(){
 		@Override
-		public void onClick(View v) {
-			if (!clicked_btn_origin) {
-
-				// 发送keycode=2
-				KeyCodeSend.send(2, NewPragramActivity.this);
-				clicked_btn_manual = false;
-				clicked_btn_origin = true;
-				clicked_btn_step = false;
-				clicked_btn_automatic = false;
-				// 删除之前我们定义的通知
-				NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-				notificationManager.cancel(manual_ID);
-
-			}
-			else
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
 			{
-				KeyCodeSend.send(2, NewPragramActivity.this);
-			}
-			new AlertDialog.Builder(NewPragramActivity.this)
-			.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executeydcz)
-			.setPositiveButton(R.string.T_titleexecute,
-					new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog,
-						int which) {
-					KeyCodeSend.send(5, NewPragramActivity.this);
-				}
-
-			}).setNegativeButton(R.string.T_titlecancel,null).show();
-			
-				}
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x40));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, NewPragramActivity.this);
+				sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this);
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
 	};
-
-	/**
-	 * 步进模式Listener
-	 */
-	public OnClickListener mode_step_listener = new OnClickListener() {
-
+	
+	private final Runnable stepDataFinishTodo = new Runnable(){
 		@Override
-		public void onClick(View v) {
-			if (!clicked_btn_step) {
-
-				// 发送keycode=3
-				KeyCodeSend.send(3, NewPragramActivity.this);
-				
-				clicked_btn_manual = false;
-				clicked_btn_origin = false;
-				clicked_btn_step = true;
-				clicked_btn_automatic = false;
-			
-				// 删除之前我们定义的通知
-				NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-				notificationManager.cancel(manual_ID);
-
-			}
-			else
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
 			{
-				KeyCodeSend.send(3, NewPragramActivity.this);
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x80));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, NewPragramActivity.this);
+				sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this);
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
+	};
+	
+	private final Runnable automaticDataFinishTodo = new Runnable(){
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
+			{
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x20));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, NewPragramActivity.this);
+				sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this);
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
+	};
+/**
+ * 原点模式Listener
+ */
+public OnClickListener mode_origin_listener = new OnClickListener() {
+
+	@Override
+	public void onClick(View v) {
+		if (WifiSetting_Info.mClient == null) {
+			Toast.makeText(NewPragramActivity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (!clicked_btn_origin) {
+			clicked_btn_origin = true;
+			clicked_btn_step = false;
+			clicked_btn_automatic = false;
+			// 删除之前我们定义的通知
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			notificationManager.cancel(manual_ID);
+		}
+		
+		formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+		try {
+			sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,NewPragramActivity.this);
+			sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this,originDataFinishTodo);
+			sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+			runOnUiThread(sendDatausermodeRunnable);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		//if(checked_origin_start_stop==false){
+		new AlertDialog.Builder(NewPragramActivity.this)
+		.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executeydcz)
+		.setPositiveButton(R.string.T_titleexecute,
+				new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog,
+					int which) {
+				// TODO Auto-generated method stub
+				//checked_origin_start_stop = true;
+				KeyCodeSend.send(5, NewPragramActivity.this);
 			}
-			new AlertDialog.Builder(NewPragramActivity.this)
-			.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executebjcz)
-			.setPositiveButton(R.string.T_titleonestepexecute,
+
+		}).setNegativeButton(R.string.T_titlecancel,null).show();
+		/*}else{
+			new AlertDialog.Builder(TR_Main_Activity.this)
+			.setTitle("操作提示").setMessage("是否停止原点操作？")
+			.setPositiveButton("停止",
 					new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog,
 						int which) {
 					// TODO Auto-generated method stub
-					KeyCodeSend.send(5, NewPragramActivity.this);
+					checked_origin_start_stop = false;
+					KeyCodeSend.send(5, TR_Main_Activity.this);
 				}
 
-			}).setNegativeButton(R.string.T_titlecancel,null).show();
-	
-	}
-	};
-
-	/**
-	 * 自动模式Listener
-	 */
-	public OnClickListener mode_automatic_listener = new OnClickListener() {
-
-		@Override
-		public void onClick(View v) {
-			if (!clicked_btn_automatic) {
-				// 发送keycode=4
-				KeyCodeSend.send(4, NewPragramActivity.this);
-				clicked_btn_manual = false;
-				clicked_btn_origin = false;
-				clicked_btn_step = false;
-				clicked_btn_automatic = true;
-				// 删除之前我们定义的通知
-				NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-				notificationManager.cancel(manual_ID);
-
+			}).setNegativeButton("取消",null).show();
+		}*/
 			}
-			else
-			{
-				KeyCodeSend.send(4, NewPragramActivity.this);
-				
+};
+
+/**
+ * 步进模式Listener
+ */
+public OnClickListener mode_step_listener = new OnClickListener() {
+
+	@Override
+	public void onClick(View v) {
+		if (WifiSetting_Info.mClient == null) {
+			Toast.makeText(NewPragramActivity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (!clicked_btn_step) {
+			clicked_btn_origin = false;
+			clicked_btn_step = true;
+			clicked_btn_automatic = false;
+			// 删除之前我们定义的通知
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			notificationManager.cancel(manual_ID);
+		}
+		formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+		try {
+			sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,NewPragramActivity.this);
+			sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this,stepDataFinishTodo);
+			sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+			runOnUiThread(sendDatausermodeRunnable);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		new AlertDialog.Builder(NewPragramActivity.this)
+		.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executebjcz)
+		.setPositiveButton(R.string.T_titleonestepexecute,
+				new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog,
+					int which) {
+				// TODO Auto-generated method stub
+				KeyCodeSend.send(5, NewPragramActivity.this);
 			}
-			new AlertDialog.Builder(NewPragramActivity.this)
-			.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executezdcz)
-			.setPositiveButton(R.string.T_titleexecute,
+
+		}).setNegativeButton(R.string.T_titlecancel,null).show();
+
+				}
+};
+
+/**
+ * 自动模式Listener
+ */
+public OnClickListener mode_automatic_listener = new OnClickListener() {
+
+	@Override
+	public void onClick(View v) {
+		if (WifiSetting_Info.mClient == null) {
+			Toast.makeText(NewPragramActivity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (!clicked_btn_automatic) {
+			clicked_btn_origin = false;
+			clicked_btn_step = false;
+			clicked_btn_automatic = true;
+			// 删除之前我们定义的通知
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			notificationManager.cancel(manual_ID);
+
+		}
+		formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+		try {
+			sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,NewPragramActivity.this);
+			sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this,automaticDataFinishTodo);
+			sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+			runOnUiThread(sendDatausermodeRunnable);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		//if(checked_automatic_start_stop==false){
+		new AlertDialog.Builder(NewPragramActivity.this)
+		.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executezdcz)
+		.setPositiveButton(R.string.T_titleexecute,
+				new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog,
+					int which) {
+				// TODO Auto-generated method stub
+				//checked_automatic_start_stop = true;
+				KeyCodeSend.send(5, NewPragramActivity.this);
+			}
+
+		}).setNegativeButton(R.string.T_titlecancel,null).show();
+	/*	}else{
+			new AlertDialog.Builder(TR_Main_Activity.this)
+			.setTitle("操作提示").setMessage("是否停止自动操作？")
+			.setPositiveButton("停止",
 					new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog,
 						int which) {
-					KeyCodeSend.send(5, NewPragramActivity.this);
+					// TODO Auto-generated method stub
+					checked_automatic_start_stop = false;
+					KeyCodeSend.send(5, TR_Main_Activity.this);
 				}
 
-			}).setNegativeButton(R.string.T_titlecancel,null).show();
-	
-					}
-	};
+			}).setNegativeButton("取消",null).show();
+		}*/
+				}
+};
+
+
+
+
 	
 	private void initView(){
 		// 提示getActionBar方法一定在setContentView后面
@@ -392,7 +528,8 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		Log.e("mpeng","onDestroy new pragram activity");
-		PosccalmRunnable.destroy();
+		if(PosccalmRunnable!=null)
+		  PosccalmRunnable.destroy();
 		unregisterReceiver(FR);
 		if(nocationDialog!=null)
 			nocationDialog.dismiss();
@@ -483,7 +620,7 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 	        	else
 	        	{
 	        		
-	            Bundle text = intent.getExtras();
+	            intent.getExtras();
 	            int pos =  intent.getIntExtra("Clickposition", -1);	       
 				mBundle = intent.getExtras();
 				myName = intent.getStringExtra("name");
@@ -926,7 +1063,6 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 				list_mould_setting.get(intAll).put("note_mould_setting", date2);
 				
 				Fragments_mouldData.saveMouldDataList(list_mould_setting,date2,intAll);
-				listselectposition=intAll;
 				WifiSetting_Info.wifiTimeOut=System.currentTimeMillis();
 				WifiSetting_Info.progressDialog = ProgressDialog.show(NewPragramActivity.this, "另存程序中", "请等待", true, false); 
 				
@@ -936,9 +1072,7 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 				
 
 				saveStrname=editmouldnamestr.toString().trim();
-				saveposition=listselectposition;
-				
-				 new Thread()
+				new Thread()
 	              {
 	                  public void run()
 	                  {

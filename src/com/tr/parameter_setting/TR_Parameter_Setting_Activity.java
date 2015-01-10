@@ -3,7 +3,6 @@ package com.tr.parameter_setting;
 
 import java.util.HashMap;
 
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
 import wifiRunnablesAndChatlistener.KeyCodeSend;
 import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 

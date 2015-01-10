@@ -5,8 +5,8 @@ import wifiProtocol.WifiSendDataFormat;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.KeyCodeSend;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
-import wifiRunnablesAndChatlistener.PositionQueryRunnable;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
+import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -167,10 +167,10 @@ import com.tr.programming.Config;
 					}else{
 						tmp = Define.POSITION_GOODS;
 					}
-					if (!NewPragramActivity.positionQueryRunnable.existFlag){ //第一次显示时启动线程，滚动操作和线程无关
-						NewPragramActivity.positionQueryRunnable = new PositionQueryRunnable(
-								mContext,holder.line_sp_setting,holder.BA_sp_setting,holder.UD_sp_setting,tmp);
-						Thread a1=new Thread(NewPragramActivity.positionQueryRunnable);
+					if (!NewPragramActivity.PosccalmRunnable.existFlag){ //第一次显示时启动线程，滚动操作和线程无关
+						NewPragramActivity.PosccalmRunnable = new posccalmQueryRunnable(
+								mContext,holder.line_sp_setting,holder.BA_sp_setting,holder.UD_sp_setting,null,null,null,null,null,null,null);
+						Thread a1=new Thread(NewPragramActivity.PosccalmRunnable);
 						a1.start();
 					}
 					
@@ -194,8 +194,8 @@ import com.tr.programming.Config;
 							int tmp = 0;
 							//当第一行隐藏时销毁线程，避免推送数据到其他行
 							if (start_index != 0) {
-								if(NewPragramActivity.positionQueryRunnable!=null){
-									NewPragramActivity.positionQueryRunnable.destroy();
+								if(NewPragramActivity.PosccalmRunnable!=null){
+									NewPragramActivity.PosccalmRunnable.destroy();
 								}
 							}else{
 								if (toggBtn.isChecked()) {// 选中为料道侧
@@ -203,10 +203,10 @@ import com.tr.programming.Config;
 								}else{
 									tmp = Define.POSITION_GOODS;
 								}
-								if (!NewPragramActivity.positionQueryRunnable.existFlag){ //第一次显示时启动线程，滚动操作和线程无关
-									NewPragramActivity.positionQueryRunnable = new PositionQueryRunnable(
-											mContext,holder.line_sp_setting,holder.BA_sp_setting,holder.UD_sp_setting,tmp);
-									Thread a1=new Thread(NewPragramActivity.positionQueryRunnable);
+								if (!NewPragramActivity.PosccalmRunnable.existFlag){ //第一次显示时启动线程，滚动操作和线程无关
+									NewPragramActivity.PosccalmRunnable = new posccalmQueryRunnable(
+											mContext,holder.line_sp_setting,holder.BA_sp_setting,holder.UD_sp_setting,null,null,null,null,null,null,null);
+									Thread a1=new Thread(NewPragramActivity.PosccalmRunnable);
 									a1.start();
 								}
 							}
@@ -441,7 +441,7 @@ import com.tr.programming.Config;
 															String[] editStrings=editString.split("\\.");
 															if (2==editStrings.length) {
 																editDouble=Double.parseDouble(editString);
-																if (editDouble>=100000) {
+																if (editDouble>99999.9) {
 																	Toast.makeText(mContext, "数据超过范围，请重新输入", Toast.LENGTH_SHORT).show();
 																	editString = "";
 																	return;
@@ -455,7 +455,7 @@ import com.tr.programming.Config;
 															}
 														}else {
 															editDouble=Double.parseDouble(editString);
-															if (editDouble>=100000) {
+															if (editDouble>99999.9) {
 																Toast.makeText(mContext, "数据超过范围，请重新输入", Toast.LENGTH_SHORT).show();
 																editString = "";
 																return;

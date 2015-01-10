@@ -4,27 +4,9 @@ import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-
-import wifiProtocol.WifiReadDataFormat;
-import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
-import wifiRunnablesAndChatlistener.FinishRunnable;
-import wifiRunnablesAndChatlistener.NormalChatListenner;
-import wifiRunnablesAndChatlistener.SendDataRunnable;
-import wifiRunnablesAndChatlistener.WatchRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
-
 import com.dbutils.ArrayListBound;
 import com.tr.R;
 import com.tr.programming.Fragments_Device_ActualInput.lockListener;
-import com.tr.programming.Fragments_Device_Alarm.MyAdapter.notelistener;
-import com.tr.programming.Fragments_Device_Alarm.MyAdapter.symbolNameListener;
-import com.tr.programming.Fragments_Device_Counter.MyAdapter.signalNameListener;
-import com.wifiexchange.ChatListener;
-import com.wifiexchange.WifiSetting_Info;
-
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
@@ -128,6 +110,119 @@ try{
  				if (TR_Programming_Activity.alreadyChecked_programmingPassword) {
  					DevicePosition_Adapter.setSelectItem(position);
  					DevicePosition_Adapter.notifyDataSetChanged();
+ 					new AlertDialog.Builder(getActivity())
+					.setTitle(R.string.programming_lineOperate)//行操作
+//					.setItems(new String[] { getResources().getString(R.string.programming_insertLineUp), "删除该行", "下面插入一行" },
+					.setItems(getResources().getStringArray(R.array.programming_array_lineOperate),//行操作数组
+							new DialogInterface.OnClickListener() { // 添加选择某项后的方法
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) { //
+									switch (which) {
+									case 0:// 上面插入一行,自动删除最后一行，保持行数固定
+										HashMap<String, Object> map1 = new HashMap<String, Object>();
+										map1.put("addressText", String
+												.format("%04d", position+1));//
+										map1.put("symbolNameEditText", "");
+										map1.put("signalNameEditText", "");
+										map1.put("noteEditText", "");
+										map1.put("setItem", "0");
+										ActualPositionList.add(position, map1);
+										// 更新地址号
+										for (int restposition = position + 1; restposition < ActualPositionList
+												.size(); restposition++) {
+											ActualPositionList.get(
+													restposition).put(
+													"addressText",
+													String.format("%04d",
+															restposition+1));
+										}
+										/*// 自动删除最后一行
+										ActualPositionList
+												.remove(ActualPositionList
+														.size() - 1);*/
+										DevicePosition_Adapter
+												.notifyDataSetChanged();
+										Toast.makeText(getActivity(),
+												"上面已插入一行",
+												Toast.LENGTH_SHORT).show();
+										break;
+
+									case 1:// 删除该行，最后自动添加一行，保持行数固定
+										new AlertDialog.Builder(getActivity())
+										.setTitle("删除警告")
+										.setMessage("确认删除地址为"+String.format("%04d", position)+"这一行设备？")
+										.setPositiveButton("确定删除",
+												new OnClickListener() {
+											@Override
+											public void onClick(DialogInterface dialog,int which) {
+												ActualPositionList.remove(position);
+												for (int restposition = position; restposition < ActualPositionList
+														.size(); restposition++) {
+													ActualPositionList.get(
+															restposition).put(
+															"addressText",
+															String.format("%04d",
+																	restposition+1));
+												}
+												/*// 最后自动添加一行
+												HashMap<String, Object> mapadd1 = new HashMap<String, Object>();
+												mapadd1.put("addressText", String
+														.format("%04d",
+																ActualPositionList
+																		.size()+1));//
+												mapadd1.put("symbolNameEditText",
+														"");
+												mapadd1.put("signalNameEditText",
+														"");
+												mapadd1.put("noteEditText", "");
+												mapadd1.put("setItem", "0");
+												ActualPositionList.add(mapadd1);*/
+
+												DevicePosition_Adapter
+														.notifyDataSetChanged();
+												Toast.makeText(getActivity(),
+														"已删除该行", Toast.LENGTH_SHORT)
+														.show();
+                                              }
+										}).setNegativeButton("取消", null).show();
+										break;
+									case 2:// 下面插入一行，自动删除最后一行，保持行数固定
+										int nextposition = (position + 1);
+										HashMap<String, Object> map2 = new HashMap<String, Object>();
+										map2.put("addressText", String
+												.format("%04d",
+														nextposition+1));//
+										map2.put("symbolNameEditText", "");
+										map2.put("signalNameEditText", "");
+										map2.put("noteEditText", "");
+										map2.put("setItem", "0");
+										ActualPositionList.add(nextposition,
+												map2);
+
+										for (int restposition = nextposition + 1; restposition < ActualPositionList
+												.size(); restposition++) {
+											ActualPositionList.get(
+													restposition).put(
+													"addressText",
+													String.format("%04d",
+															restposition+1));
+										}
+										/*// 自动删除最后一行
+										ActualPositionList
+												.remove(ActualPositionList
+														.size() - 1);*/
+										DevicePosition_Adapter
+												.notifyDataSetChanged();
+										Toast.makeText(getActivity(),
+												"下面已插入一行",
+												Toast.LENGTH_SHORT).show();
+										break;
+									default:
+										break;
+									}
+								}
+							}).setNegativeButton("取消", null).show();
  				}else {
 					Toast.makeText(getActivity(), "当前处于锁定状态", Toast.LENGTH_SHORT).show();
 				}

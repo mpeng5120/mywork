@@ -361,7 +361,6 @@ public class NCTranslate {
 					alllength[0]=-3;
 					return alllength;
 				}
-				Log.e("mpeng","the all lenth is "+alllength.length +"index  :"+index);
 				alllength[index-1]=binary_code.size() * 12;
 				//System.out.println("8alllength["+(index-1)+"]="+alllength[index-1]);
 			}
@@ -833,7 +832,12 @@ public class NCTranslate {
 					}
 					binary_code.add(TableToBinary.getTHROUGHBytes(true));
 					// move点赋值,move操作单元格里面的只有一个设备名（位置）
-					int pointno = TableToBinary.searchAddress(operation, false);
+					int pointno=0;
+					if(operation.startsWith("F")||operation.startsWith("f")){
+						pointno=1;
+					}else{
+						pointno=Integer.parseInt(operation.trim().substring(operation.indexOf("P")+1));
+					}
 					if(pointno==-1){
 						dname=operation;
 						return -1;
@@ -973,7 +977,13 @@ public class NCTranslate {
 						}
 						return 0;
 					}
-					int temp2=TableToBinary.searchAddress(operation, false);
+					int temp2=0;
+					if(operation.startsWith("F")||operation.startsWith("f")){
+						temp2=1;
+					}else{
+						temp2=Integer.parseInt(operation.trim().substring(operation.indexOf("P")+1));
+					}
+					
 					if(temp2==-1){
 						dname=operation;
 						return -1;

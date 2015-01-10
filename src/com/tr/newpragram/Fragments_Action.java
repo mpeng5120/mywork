@@ -21,13 +21,11 @@ import java.util.regex.Pattern;
 import wifiProtocol.WifiReadDataFormat;
 import wifiProtocol.WifiReadMassiveDataFormat;
 import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
-import wifiRunnablesAndChatlistener.PositionQueryRunnable;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
 import wifiRunnablesAndChatlistener.WatchRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
+import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
@@ -781,9 +779,7 @@ public class Fragments_Action extends Fragment {
 				}else if((order_MOVE.contains("MOVE")||order_MOVE.contains("MOVEP"))&&operatstr.contains("FP")){
 					
 				}else if((order_MOVE.contains("MOVE")||order_MOVE.contains("MOVEP"))&&operatstr.contains("P")){
-					if(getData3[Integer.parseInt(operatstr.substring(operatstr.indexOf("P")+1))-1]!=0){
-						continue;
-					}
+					
 					chs=operatstr.toCharArray();
 					 ch=' ';
 					 allA=0;
@@ -791,20 +787,11 @@ public class Fragments_Action extends Fragment {
 							if(chs[i1]=='A'){
 								ch=chs[i1+1];
 								int index=(int)ch-49;
-								if(index==0){
-									allA=allA+(int) (Math.pow(2, 0));
+								if((getData3[Integer.parseInt(operatstr.substring(operatstr.indexOf("P")+1))-1]&(int)(Math.pow(2, index)))==(int)(Math.pow(2, index))){
+									continue;
 								}
-								if(index==1){
-									allA=allA+(int) (Math.pow(2, 1));
-								}
-								if(index==2){
-									allA=allA+(int) (Math.pow(2, 2));
-								}
-								if(index==3){
-									allA=allA+(int) (Math.pow(2, 3));
-								}
-								if(index==4){
-									allA=allA+(int) (Math.pow(2, 4));
+								if(index>=0&&index<=4){
+									allA=allA+(int) (Math.pow(2, index));
 								}
 							}else if(chs[i1]=='P'||chs[i1]=='p'){
 								getData3[Integer.parseInt(operatstr.substring(i1+1))-1]+=HexDecoding.int2byte(allA)[0];
@@ -2565,13 +2552,13 @@ public class Fragments_Action extends Fragment {
 	        	        	}
 	        	        }
 	        	        
-	        	        if(NewPragramActivity.positionQueryRunnable!=null){
-	        	        	NewPragramActivity.positionQueryRunnable.destroy();
+	        	        if(NewPragramActivity.PosccalmRunnable!=null){
+	        	        	NewPragramActivity.PosccalmRunnable.destroy();
 						}
-	    			 if(PositionQueryRunnable.existFlag==false){
-	    				 NewPragramActivity.positionQueryRunnable=new PositionQueryRunnable(
-	    							getActivity(),xCurTxt,yCurTxt,hCurTxt,zCurTxt,lCurTxt);
-	    					Thread a1=new Thread(NewPragramActivity.positionQueryRunnable);
+	    			 if(NewPragramActivity.PosccalmRunnable.existFlag==false){
+	    				 NewPragramActivity.PosccalmRunnable=new posccalmQueryRunnable(
+	    							getActivity(),xCurTxt,yCurTxt,hCurTxt,zCurTxt,lCurTxt,null,null,null,null,null);
+	    					Thread a1=new Thread(NewPragramActivity.PosccalmRunnable);
 	    					a1.start();
 	    				}
 	                }
@@ -2579,9 +2566,6 @@ public class Fragments_Action extends Fragment {
 	                {
 	                	
 	                	PositionAddBtn.setEnabled(false);
-	                	if(NewPragramActivity.positionQueryRunnable!=null){
-	                		NewPragramActivity.positionQueryRunnable.destroy();
-						}
 	                	PositionLayout.setVisibility(View.GONE);
 	                	fspLayout.setVisibility(View.VISIBLE);
 //	                	InfoText.setText("SP"+ PosNumStr);
@@ -2624,8 +2608,8 @@ public class Fragments_Action extends Fragment {
 	                {
 	                	//自由装箱只有FP001 FP002
 	                	PositionAddBtn.setEnabled(false);
-	                	if(NewPragramActivity.positionQueryRunnable!=null){
-	                		NewPragramActivity.positionQueryRunnable.destroy();
+	                	if(NewPragramActivity.PosccalmRunnable!=null){
+	                		NewPragramActivity.PosccalmRunnable.destroy();
 						}
 	                	PositionLayout.setVisibility(View.GONE);
 	                	fspLayout.setVisibility(View.VISIBLE);
@@ -2798,8 +2782,8 @@ public class Fragments_Action extends Fragment {
 					@Override
 					public void onDismiss(DialogInterface arg0) {
 						// TODO Auto-generated method stub
-						if(NewPragramActivity.positionQueryRunnable!=null){
-							NewPragramActivity.positionQueryRunnable.destroy();
+						if(NewPragramActivity.PosccalmRunnable!=null){
+							NewPragramActivity.PosccalmRunnable.destroy();
 						}
 						 opTxt = "";
 					}  

@@ -21,15 +21,12 @@ import com.tr.programming.TR_Programming_Activity;
 import wifiProtocol.WifiReadDataFormat;
 import wifiProtocol.WifiReadMassiveDataFormat;
 import wifiProtocol.WifiSendDataFormat;
-import wifiRunnablesAndChatlistener.AlarmQueryRunnable;
-import wifiRunnablesAndChatlistener.CntCycQueryRunnable;
 import wifiRunnablesAndChatlistener.DelayCount;
 import wifiRunnablesAndChatlistener.DelayTimerQueryRunnble;
 import wifiRunnablesAndChatlistener.DelayoptionQueryRunnble;
 import wifiRunnablesAndChatlistener.FinishRunnable;
 import wifiRunnablesAndChatlistener.NormalChatListenner;
 import wifiRunnablesAndChatlistener.SendDataRunnable;
-import wifiRunnablesAndChatlistener.ledRunnable;
 import wifiRunnablesAndChatlistener.maintimeRunnable;
 import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 
@@ -163,12 +160,7 @@ public class Fragments_maintain extends Fragment{
 	private WifiSendDataFormat formatSendMessage;
 	String password_old;
 	String passwordToChange;
-	
-	private ledRunnable ledrunnable;
-	private AlarmQueryRunnable alarmQueryRunnable;
-	private CntCycQueryRunnable cntCycQueryRunnable;
-	private maintimeRunnable maintimerunnable;
-	
+	private maintimeRunnable maintimerunnable;	
 	private posccalmQueryRunnable PosccalmRunnable;
 	private Thread PoccQueryThread;
 	private Handler myHandler;
@@ -178,13 +170,14 @@ public class Fragments_maintain extends Fragment{
 	public void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
+		list_alarmzb= ArrayListBound.getAlarmzbListData();
 		new Thread() {
 			public void run() {
 				
 				list_version = ArrayListBound.getVersionListData();
 				list_alarm = ArrayListBound.getAlarmListData();
 				list_io = ArrayListBound.getIOListData();
-			    list_alarmzb= ArrayListBound.getAlarmzbListData();
+			    
 			}
 
 		}.start();
