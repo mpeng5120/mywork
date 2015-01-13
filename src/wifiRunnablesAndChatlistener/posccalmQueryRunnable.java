@@ -217,6 +217,7 @@ public class posccalmQueryRunnable implements Runnable{
 				//1  ´¦Àí°´¼ü
 					if(getData[112]!=0)
 					{
+						Log.i("mpeng","send keykode!!");
 						byte[] keyCode = new byte[3];
 						System.arraycopy(getData, 112, keyCode, 0, 3);						
 						Intent intent = new Intent();

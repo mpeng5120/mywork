@@ -7,23 +7,30 @@ import com.dbutils.ArrayListBound;
 import com.dbutils.Constans;
 import com.explain.TableToBinary;
 import com.tr.R;
+import com.tr.crash.CrashApplication;
 import com.tr.programming.Config;
+import com.tr.programming.TR_Programming_Activity;
+
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class ActionOrderListener implements OnClickListener {
     private View view;
     private int position;
     private String order_now;
+    private ListView mSourceListView;
     private ArrayList<HashMap<String, Object>> appList;
     private com.tr.newpragram.Fragments_Action.MyAdapter myAdaptertest;
     private String PO="";
@@ -48,13 +55,15 @@ public class ActionOrderListener implements OnClickListener {
         }
 
     
-    public ActionOrderListener(View orderview, int pos, String order_array,ArrayList<HashMap<String, Object>> NcEditList,com.tr.newpragram.Fragments_Action.MyAdapter myAdapter) {
+    public ActionOrderListener(View orderview, int pos, String order_array,ArrayList<HashMap<String, Object>> NcEditList,
+    		com.tr.newpragram.Fragments_Action.MyAdapter myAdapter,ListView Lv) {
 	// TODO 自动生成的构造函数存根
 	view = orderview;
 	position = pos;
 	order_now = order_array;
 	appList=NcEditList;
 	myAdaptertest=myAdapter;	
+	mSourceListView = Lv;
     }
 
 
@@ -607,13 +616,18 @@ try{
 		mapOUTP.put("orderSpinner","OUT");	
 		mapOUTP.put("operatText",morderPreviewString.subSequence(0, morderPreviewString.length()-1));	
 		mapOUTP.put("noteEditText","输出"+axlenote.subSequence(0, axlenote.length()-1));
-		appList.set(position, mapOUTP);
-		myAdaptertest.notifyDataSetChanged();
+		appList.set(position, mapOUTP);	
+
 		break;
 	case MOVE:
 	case MOVEP:
 		ncOrderMOVE(view);
-		
+		if(axisString.equals("")){
+			Toast.makeText(CrashApplication.getInstance(), "请选中要操作的轴!",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
+			
 //		//修改容器内容
 		HashMap<String, Object> mapMOVE = new HashMap<String, Object>();
 		Log.d("mpeng"," the app list is "+position);
@@ -621,10 +635,9 @@ try{
 				
 			mapMOVE.put("orderSpinner",order_now);
 			mapMOVE.put("operatText",axisString+PO);	
-		mapMOVE.put("noteEditText",axlenote.substring(0, axlenote.length()-1)+"移动到"+PO);
+			mapMOVE.put("noteEditText",axlenote.substring(0, axlenote.length()-1)+"移动到"+PO);
 		appList.set(position, mapMOVE);
-		myAdaptertest.notifyDataSetChanged();
-		Log.d("mpeng","the nc list "+ArrayListBound.getNCeditList3Data().toString());
+
 	    break;
 	    
 	case IF:
@@ -636,7 +649,7 @@ try{
 		mapIF.put("noteEditText",axlenote);
 		appList.set(position, mapIF);
 		//更新显示
-		myAdaptertest.notifyDataSetChanged();
+
 	    break;
 	case OUT:
 		ncOrderOUT(view);
@@ -646,7 +659,7 @@ try{
 		mapOUT.put("operatText",morderPreviewString);	
 		mapOUT.put("noteEditText",axlenote);
 		appList.set(position, mapOUT);
-		myAdaptertest.notifyDataSetChanged();
+
 	    break;    
 	case PARALLEL:
 		ncOrderPARALLEL(view);
@@ -656,7 +669,7 @@ try{
 		mapPARALLEL.put("operatText",morderPreviewString.subSequence(0, morderPreviewString.length()-1));	
 		mapPARALLEL.put("noteEditText","输出"+axlenote.subSequence(0, axlenote.length()-1));
 		appList.set(position, mapPARALLEL);
-		myAdaptertest.notifyDataSetChanged();
+
 	    break;
 	case SEQUENTIAL:
 		ncOrderSEQUENTIAL(view);
@@ -666,7 +679,7 @@ try{
 		mapSEQUENTIAL.put("operatText",morderPreviewString.subSequence(0, morderPreviewString.length()-1));	
 		mapSEQUENTIAL.put("noteEditText",axlenote.subSequence(0, axlenote.length()-1));
 		appList.set(position, mapSEQUENTIAL);
-		myAdaptertest.notifyDataSetChanged();
+
 	    break;
 	case WAIT:
 		ncOrderWAIT(view);
@@ -676,11 +689,37 @@ try{
 		mapWAIT.put("operatText",PO);	
 		mapWAIT.put("noteEditText","等待"+PO);
 		appList.set(position, mapWAIT);
-		myAdaptertest.notifyDataSetChanged();
+		
 		break;	
 	default:
 		break;
 	}
+	if(appList.size()==(position+1)){
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("addressText",	String.format("%04d", appList.size()));//
+		map.put("numSpinner","");
+		map.put("orderSpinner","");
+		map.put("operatText","");
+		map.put("noteEditText","");
+		appList.add(map);
+	}
+	myAdaptertest.setSelectItem(position+1);	
+	myAdaptertest.notifyDataSetChanged();
+
+	if((mSourceListView.getLastVisiblePosition())>= position)
+	{
+	Handler UpdateList = new Handler();
+	UpdateList.postDelayed(new Runnable() {			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				mSourceListView.setSelection(mSourceListView.getFirstVisiblePosition()+2);
+			}
+			},10);
+		
+	}
+	
+	
     }catch(Exception e){
 		e.printStackTrace();
 	}

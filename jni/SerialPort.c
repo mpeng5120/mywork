@@ -350,7 +350,7 @@ jint name_arr[] = { 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200, 300,
 
 		if (result > 0) {
 			//LOGI("jbuffer :::::::::: %d",jBuffer->len);
-			LOGI("the result is %d the remains is : %d the byteCount is%d:\n",result,byteRemains,byteCount);
+			//LOGI("the result is %d the remains is : %d the byteCount is%d:\n",result,byteRemains,byteCount);
 			byteRemains -= result;
 			byteGetCount += result;
 		} else {

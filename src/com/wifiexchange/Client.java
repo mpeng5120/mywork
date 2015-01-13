@@ -201,7 +201,7 @@ public class Client implements Runnable {
 				int count = 0;
 				count = serialPort.readBytes(returnmessagebyte);
 				if(count > 0){  // 收到返回的数据   
-//					
+					Log.d("client"," the  count is "+count);
 //					for(int i=0;i<count;i++)
 //						Log.d("mpeng","the return message is ["+i+"] is :" +returnmessagebyte[i]);
 						if (himaflag_high == false) {		

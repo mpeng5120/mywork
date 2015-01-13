@@ -8,6 +8,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import com.explain.TableToBinary;
 import com.tr.R;
+import com.tr.programming.Config;
 import com.wifiexchange.ChatListener;
 import com.wifiexchange.WifiSetting_Info;
 
@@ -27,6 +28,7 @@ public class DelayoptionQueryRunnble implements Runnable {
 	
 	private static boolean selfDestroy_flag;
 	private static boolean destroyPositionQueryFlag;
+	public static boolean existFlag = false;
 	
 	
 	private Activity targetActivity;
@@ -48,7 +50,8 @@ public class DelayoptionQueryRunnble implements Runnable {
 		try{
 		//System.out.println("计数器查询线程");
 		selfDestroy_flag=true;		
-		destroyPositionQueryFlag = true;		
+		destroyPositionQueryFlag = true;	
+		existFlag = true;
 		this.targetActivity=targetActivity;		
 		listView=tempListView;
 		
@@ -78,6 +81,8 @@ public class DelayoptionQueryRunnble implements Runnable {
 				try{
 					// TODO Auto-generated method stub
 					for (int i = 0; i < idevicelist1.length; i++) {
+						if(selfDestroy_flag)
+							return;
 						if(idevicelist1[i]==0xffff){
 							ideviceTextViews1[i].setBackgroundColor(Color.GRAY);
 							//break;
@@ -140,7 +145,7 @@ public class DelayoptionQueryRunnble implements Runnable {
 				//获取返回的数据，从第八位开始拷贝数据
 				System.arraycopy(formatReadMessage.getFinalData(),0, getData, 0, formatReadMessage.getLength());
 				//对所收集到到的数据进行处理
-				if(pointShowRunnable!=null&&targetActivity!=null)
+				if(pointShowRunnable!=null&&targetActivity!=null&&selfDestroy_flag)
 					targetActivity.runOnUiThread(pointShowRunnable);
 
 			}
@@ -148,39 +153,39 @@ public class DelayoptionQueryRunnble implements Runnable {
 	};
 	
 	//销毁该线程
-	public static void destroy() {
+	public void destroy() {
 			System.out.println("计数器线程关闭");		
 			selfDestroy_flag=false;
 			destroyPositionQueryFlag = false;
+			existFlag = false;
 	}
 	
 	@Override
 	public void run() {
+		
+		while (selfDestroy_flag) {			
 		try {
-			while (selfDestroy_flag) {
 				if(WifiSetting_Info.LOCK == null)
 					WifiSetting_Info.LOCK = new Object();
 				synchronized(WifiSetting_Info.LOCK)
 				{
 					WifiSetting_Info.LOCK.notify();
-					try {
-						if (WifiSetting_Info.blockFlag&&selfDestroy_flag&&WifiSetting_Info.mClient!=null) {
+				
+					if (WifiSetting_Info.blockFlag&&selfDestroy_flag&&WifiSetting_Info.mClient!=null) {
 							Thread.sleep(170);
 							Log.d("mpeng","run~~~~~~delay~~~~~~~~~");
 							WifiSetting_Info.mClient.sendMessage(formatReadMessage.sendDataFormat(), ReadDataFeedback,targetActivity);
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						destroy();
-					}						
+					}		
+					if(Config.isMutiThread)	
 						 WifiSetting_Info.LOCK.wait();					
 				}
-			}
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			destroy();
 		}
+	}
+
 	}
 
 	

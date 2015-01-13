@@ -60,8 +60,8 @@ public class Fragments_FreeOption extends Fragment {
 	
 	private static int selectedItem = 0;
 	// ------------
-	public static DelayCount delayCount;
-	public static  DelayCount tempCount;
+//	public static DelayCount delayCount;
+//	public static  DelayCount tempCount;
 	private ImageView imageView1;
 	
 	private byte[] getData;
@@ -89,17 +89,18 @@ public class Fragments_FreeOption extends Fragment {
 		super.onPause();
 		getActivity().getIntent().putExtra("zyczsetting", false);
 		System.out.println("onPause1");
-        if(delayCount!=null)
-        	delayCount.destroy();
-		
-		 if(tempCount!=null)
-			 tempCount.destroy();
+//        if(delayCount!=null)
+//        	delayCount.destroy();
+//		
+//		 if(tempCount!=null)
+//			 tempCount.destroy();
 			
 		 System.out.println("¹Ø±ÕdelayCount1");
 		 Config.isMutiThread =false;
 		Config.SelectSpeedId = -1;
 		Config.SelectArmId = - 1;
-		DelayoptionQueryRunnble.destroy();
+		if(dqr!=null)
+			dqr.destroy();
 		System.out.println("¹Ø±ÕalarmQueryRunnable1");
 	}
 	@Override
@@ -129,6 +130,11 @@ public class Fragments_FreeOption extends Fragment {
 			Toast.makeText(getActivity(), e.toString(), Toast.LENGTH_LONG);
 		}
 		Config.isMutiThread = true;
+		if(dqr!=null)
+		{
+			Log.e("mpeng","dqr !=null");
+			dqr.destroy();
+		}
 		dqr = new DelayoptionQueryRunnble(getActivity(), optionListView_setting);
 	    delayQueryThread=new Thread(dqr) ;
 	    delayQueryThread.start();
@@ -136,6 +142,11 @@ public class Fragments_FreeOption extends Fragment {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
 				// TODO Auto-generated method stub
+				if(dqr!=null)
+				{
+					Log.e("mpeng","dqr !=null");
+					dqr.destroy();
+				}
 				myHandler.sendEmptyMessageDelayed(111, 500);
 			}
 
@@ -227,12 +238,12 @@ public class Fragments_FreeOption extends Fragment {
 				freeListView_setting.setAdapter(freeList_Adapter);
 				
 
-				delayCount = new DelayCount(500, 100, getActivity(),
-						freeListView_setting, "freePoint");
-				if (delayCount == null) {
-					return;
-				}
-				delayCount.start();
+//				delayCount = new DelayCount(500, 100, getActivity(),
+//						freeListView_setting, "freePoint");
+//				if (delayCount == null) {
+//					return;
+//				}
+//				delayCount.start();
 		}
 		}catch(Exception e){
 			e.printStackTrace();
@@ -269,6 +280,8 @@ public class Fragments_FreeOption extends Fragment {
 				}
 				else 
 				{
+					if(dqr!=null)
+						dqr.destroy();
 					myHandler.sendEmptyMessageDelayed(111, 500);
 				}
 			}

@@ -157,6 +157,7 @@ public class FragmentList extends Fragment {
 							getActivity().sendBroadcast(IT);
 					    }else if(name.contains("P"))
 					    {
+					    	Log.i("mpeng","goto detail !!!");
 					    	String PosName = name.substring(name.indexOf("P"));
 					    	bundle.putString("PosType", PosName);//µ±Ç°ÊÇP SP.FP					   
 						    IT.putExtras(bundle);

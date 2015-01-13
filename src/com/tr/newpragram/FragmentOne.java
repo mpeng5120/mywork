@@ -24,6 +24,8 @@ import com.tr.programming.Config;
 import com.wifiexchange.WifiSetting_Info;
 
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.method.NumberKeyListener;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -52,6 +54,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.pm.ActivityInfo;
 
 /**
@@ -514,6 +517,7 @@ public class FragmentOne extends Fragment {
 		speed=(EditText)getActivity().findViewById(R.id.speed);
 		aspeed=(EditText)getActivity().findViewById(R.id.aspeed);
 		dspeed=(EditText)getActivity().findViewById(R.id.dspeed);
+		speed.setOnTouchListener(new PListener(speed));
 		speed.setOnEditorActionListener(new OnEditorActionListener() {
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				 {
@@ -1282,4 +1286,151 @@ public class FragmentOne extends Fragment {
   super.onResume();
  }
   
+  
+  
+  class PListener implements OnTouchListener {
+		private  EditText myEt;
+		private AlertDialog valueDialog;
+		int touch_flag=0;
+
+		PListener(EditText et) {
+			myEt = et;
+		}
+
+		/* (non-Javadoc)
+		 * @see android.view.View.OnTouchListener#onTouch(android.view.View, android.view.MotionEvent)
+		 */
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			// TODO Auto-generated method stub
+			touch_flag++;
+			Log.e("mpeng"," the touch is "+touch_flag);
+			if(touch_flag==2)
+			{
+			final EditText etEditText = new EditText(getActivity());
+			// 限制只能输入0~9的数字和点号
+			//设定位置，限制输入正负浮点数
+			switch(v.getId())
+			{
+			case R.id.speed:
+				InputFilter[] filters = {new InputFilter.LengthFilter(2)};				
+				etEditText.setFilters(filters);					
+				etEditText.setHint("支持格式为1-10正数");
+				etEditText.setKeyListener(new NumberKeyListener() {
+					@Override
+					protected char[] getAcceptedChars() {
+						return new char[] { '1', '2', '3', '4', '5', '6','7', '8', '9', '0'};
+					}
+					
+					@Override
+					public int getInputType() {
+						return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+					}
+				});
+				break;
+			case R.id.aspeed:
+			case R.id.dspeed:
+				InputFilter[] filters1 = {new InputFilter.LengthFilter(1)};				
+				etEditText.setFilters(filters1);					
+				etEditText.setHint("支持格式为1-5正数");
+				etEditText.setKeyListener(new NumberKeyListener() {
+					@Override
+					protected char[] getAcceptedChars() {
+						return new char[] { '1', '2', '3', '4', '5'};
+					}
+					
+					@Override
+					public int getInputType() {
+						return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+					}
+				});
+				break;
+			default:
+				InputFilter[] filters11 = {new InputFilter.LengthFilter(7)};				
+				etEditText.setFilters(filters11);	
+				etEditText.setHint("支持格式为#####.#的正负数，整数最多5位，小数最多1位");
+				etEditText.setKeyListener(new NumberKeyListener() {
+					@Override
+					protected char[] getAcceptedChars() {
+						return new char[] { '1', '2', '3', '4', '5', '6', '7',
+								'8', '9', '0', '.'  ,'+','-'};
+					}
+
+					@Override
+					public int getInputType() {
+						return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+					}
+				});
+				break;
+			}	
+			// 初始化滑动条，调整设定值
+			TextView t = (TextView) v;
+			String valueString = t.getText().toString();// 设定位置
+			etEditText.setText(valueString);
+			etEditText.setSelection(valueString.length());// 设置光标位置
+			valueDialog = new AlertDialog.Builder(getActivity())
+			.setTitle("请添加设定值")
+			.setView(etEditText)
+			.setPositiveButton(R.string.OK,
+					new DialogInterface.OnClickListener() {/* (non-Javadoc)
+					 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
+					 */
+					@Override
+					public void onClick(DialogInterface dialog,
+							int which) {
+						// TODO Auto-generated method stub
+						if(speed.getText().toString().equals("")){
+							 Toast.makeText(getActivity(),"速度为空，请重新输入", Toast.LENGTH_SHORT).show();
+							 return;
+						 }
+						 try{
+							 Float.parseFloat(speed.getText().toString()); 
+						  }catch(Exception e){
+								e.printStackTrace();
+								Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+								return;
+						 }
+						 int ccint=(int)Float.parseFloat(speed.getText().toString());
+						 if(ccint>100||ccint==0){
+							 Toast.makeText(getActivity(),"速度范围1~100", Toast.LENGTH_SHORT).show();
+							 return;
+						 }
+						//设定速度
+						 byte[] temp=new byte[1];
+							System.arraycopy(HexDecoding.int2byte(ccint), 0, temp, 0, 1);
+
+							try {
+
+								sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_cc), getActivity());
+
+								sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
+
+								sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
+
+								getActivity().runOnUiThread(sendDataRunnable);
+								
+
+							} catch (Exception e) {
+								// TODO: handle exception
+								e.printStackTrace();
+							}
+							
+						
+					}
+				
+			}).setNegativeButton(R.string.CANCEL,null).show();
+			valueDialog.setOnDismissListener(new OnDismissListener() {
+				
+				@Override
+				public void onDismiss(DialogInterface dialog) {
+					// TODO Auto-generated method stub
+					touch_flag=0;
+				}
+			});
+		}
+			
+			return false;
+		}
+
+		}
 }

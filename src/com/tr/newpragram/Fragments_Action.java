@@ -41,7 +41,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
+import android.text.InputFilter;
+import android.text.InputType;
 import android.text.TextWatcher;
+import android.text.method.NumberKeyListener;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
@@ -157,11 +160,6 @@ public class Fragments_Action extends Fragment {
 	private CheckBox zscheckbox1;
 	private CheckBox zscheckbox2;
 	
-	private LinearLayout  layoutArmH =null ;
-	private LinearLayout  layoutArmL =null ;
-	
-	
-	
 	private RadioButton radioON_zj1;
 	private RadioButton radioOFF_zj1;
 	private RadioButton radioON_zj2;
@@ -215,7 +213,6 @@ public class Fragments_Action extends Fragment {
 	private ArrayList<String> list_mouldname=new ArrayList<String>();
 	private ArrayList<String> list_mouldnum=new ArrayList<String>();
 	private ArrayList<HashMap<String, Object>> list_mould_setting = ArrayListBound.getMouldDataListData();
-	private int saveposition;
 	private String saveStrname;
 	private int listselectposition=0;
 	private boolean DownLoadSucess = false;
@@ -1091,9 +1088,7 @@ public class Fragments_Action extends Fragment {
 						
 
 						saveStrname=editmouldnamestr.toString().trim();
-						saveposition=listselectposition;
-						
-						 new Thread()
+						new Thread()
 			              {
 			                  public void run()
 			                  {
@@ -1144,10 +1139,12 @@ public class Fragments_Action extends Fragment {
 						public void onItemClick(AdapterView<?> arg0, View arg1,
 								final int position, long arg3) {
 							try{
-								if(myPos==position)
+								Log.e("mpeng","nceditget selectitem :"+NCedit_Adapter.getSelectItem()
+										+"position :"+position);
+								if(NCedit_Adapter.getSelectItem()==position)
 								{	
-									String Order = NcEditList.get(myPos).get("orderSpinner").toString();
-									Log.e("mpeng"," NcEditList.get(myPos) "+NcEditList.get(myPos).toString());		
+									String Order = NcEditList.get(NCedit_Adapter.getSelectItem()).get("orderSpinner").toString();
+									Log.e("mpeng"," NcEditList.get() "+NcEditList.get(myPos).toString());		
 									if(Order.equals("MOVE"))
 									{
 										move.performClick();
@@ -1198,10 +1195,10 @@ public class Fragments_Action extends Fragment {
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
-			Log.d("mpeng"," the my pos is "+myPos);
+			Log.d("mpeng"," the my pos is "+NCedit_Adapter.getSelectItem());
 			if(myPos != -1)
 			{
-				NCedit_Adapter.moveoperate("MOVE", myPos);
+				NCedit_Adapter.moveoperate("MOVE", NCedit_Adapter.getSelectItem());
 				//mpeng
 			}
 			else
@@ -1943,6 +1940,9 @@ public class Fragments_Action extends Fragment {
 		public void setSelectItem(int selectItem) {
 			mselectItem = selectItem;
 		}
+		public int getSelectItem() {
+			return mselectItem;
+		}
 		// 删除某一行
 		public void removeItem(int position) {
 			mAppList.remove(position);
@@ -1989,7 +1989,7 @@ public class Fragments_Action extends Fragment {
 			if (appInfo != null) {
 
 				String noteEditText = (String) appInfo.get(keyString);
-				String numText = appInfo.get("addressText").toString();
+				appInfo.get("addressText").toString();
 				holder.addressText.setText(String.valueOf(position));
 				holder.noteEditText.setText(noteEditText);
 				// 选中红色显示
@@ -2369,6 +2369,12 @@ public class Fragments_Action extends Fragment {
 	    	speed=(EditText)orderView.findViewById(R.id.speed);
 	  	    aspeed=(EditText)orderView.findViewById(R.id.aspeed);
 	  	    dspeed=(EditText)orderView.findViewById(R.id.dspeed);
+	  	    speed.setInputType(InputType.TYPE_NULL);
+	  	    speed.setOnTouchListener(new PListener(speed));
+	  	    aspeed.setInputType(InputType.TYPE_NULL);
+	  	    aspeed.setOnTouchListener(new PListener(aspeed));
+	  	    dspeed.setInputType(InputType.TYPE_NULL);
+	  	    dspeed.setOnTouchListener(new PListener(dspeed));
 	  	  
         	  xbox = (CheckBox) orderView.findViewById(R.id.xCheckBox);
         	  ybox = (CheckBox) orderView.findViewById(R.id.yCheckBox);
@@ -2392,6 +2398,16 @@ public class Fragments_Action extends Fragment {
         	  hEdTxt =  (EditText) orderView.findViewById(R.id.hEditText);
         	  zEdTxt =  (EditText) orderView.findViewById(R.id.zEditText);
         	  lEdTxt =  (EditText) orderView.findViewById(R.id.lEditText);
+        	  xEdTxt.setInputType(InputType.TYPE_NULL);
+        	  yEdTxt.setInputType(InputType.TYPE_NULL);
+        	  hEdTxt.setInputType(InputType.TYPE_NULL);
+        	  zEdTxt.setInputType(InputType.TYPE_NULL);
+        	  lEdTxt.setInputType(InputType.TYPE_NULL);
+        	  xEdTxt.setOnTouchListener(new PListener(xEdTxt));
+        	  yEdTxt.setOnTouchListener(new PListener(yEdTxt));
+        	  hEdTxt.setOnTouchListener(new PListener(hEdTxt));
+        	  zEdTxt.setOnTouchListener(new PListener(zEdTxt));
+        	  lEdTxt.setOnTouchListener(new PListener(lEdTxt));
         	  
         	  
         	  if(Config.ArmNum==3)//add by mpeng 20141225
@@ -2565,7 +2581,6 @@ public class Fragments_Action extends Fragment {
 	                // TODO Auto-generated method stub  
 	                /* 将mySpinner 显示*/  
 	            
-	            	int i = Config.list_pname.size()+1;
 	            	PosNumStr = null ;       			
 	                if(arg2 == 0)
 	                {
@@ -2834,7 +2849,7 @@ public class Fragments_Action extends Fragment {
 			 .setView(orderView)
 			 .setCancelable(false)//点击框外不消失
 			 .setPositiveButton(R.string.OK,//确定 
-					 new ActionOrderListener(orderView,position,oper,NcEditList,MyAdapter.this))//使用单独创建的类控制详细命令界面的响应!!!											
+					 new ActionOrderListener(orderView,position,oper,NcEditList,MyAdapter.this,mListView))//使用单独创建的类控制详细命令界面的响应!!!											
 			 .setNegativeButton("取消", null).show();
 			 //.setContentView(R.layout.nc_listrowcontent);
            
@@ -2869,7 +2884,11 @@ public class Fragments_Action extends Fragment {
 						// TODO Auto-generated method stub
 						if(NewPragramActivity.PosccalmRunnable!=null){
 							NewPragramActivity.PosccalmRunnable.destroy();
+
 						}
+						NewPragramActivity.PosccalmRunnable = new posccalmQueryRunnable(getActivity());
+						Thread a1= new Thread(NewPragramActivity.PosccalmRunnable);
+						a1.start();
 						 opTxt = "";
 					}  
 					
@@ -2878,7 +2897,6 @@ public class Fragments_Action extends Fragment {
 		
 		}
 	    public void zsoperate(int position){
-			final int qxposition=position;
 			View orderView=View.inflate(getActivity(), R.layout.new_order_zs,null );
 			zscheckbox1=(CheckBox)orderView.findViewById(R.id.checkBox1);
 	    	zscheckbox2=(CheckBox)orderView.findViewById(R.id.checkBox2);
@@ -2917,7 +2935,7 @@ public class Fragments_Action extends Fragment {
 			 .setView(orderView)
 			 .setCancelable(false)//点击框外不消失
 			 .setPositiveButton(R.string.OK,//确定 
-					 new ActionOrderListener (orderView,position,"OUT",NcEditList,MyAdapter.this))//使用单独创建的类控制详细命令界面的响应!!!											
+					 new ActionOrderListener (orderView,position,"OUT",NcEditList,MyAdapter.this,mListView))//使用单独创建的类控制详细命令界面的响应!!!											
 			 .setNegativeButton("取消", null).show();
 			 //.setContentView(R.layout.nc_listrowcontent);
             
@@ -2933,7 +2951,6 @@ public class Fragments_Action extends Fragment {
 	    	
 		}
 		public void zjoperate(int position){
-			final int qxposition=position;
 			View orderView=View.inflate(getActivity(), R.layout.new_order_zj,null );
 			CheckBox zjcheckbox1=(CheckBox)orderView.findViewById(R.id.checkBox1);
 			CheckBox zjcheckbox2=(CheckBox)orderView.findViewById(R.id.checkBox2);
@@ -3019,7 +3036,7 @@ public class Fragments_Action extends Fragment {
 			 .setView(orderView)
 			 .setCancelable(false)//点击框外不消失
 			 .setPositiveButton(R.string.OK,//确定 
-					 new ActionOrderListener (orderView,position,"OUTP",NcEditList,MyAdapter.this))//使用单独创建的类控制详细命令界面的响应!!!											
+					 new ActionOrderListener (orderView,position,"OUTP",NcEditList,MyAdapter.this,mListView))//使用单独创建的类控制详细命令界面的响应!!!											
 			 .setNegativeButton("取消", null).show();
 			 //.setContentView(R.layout.nc_listrowcontent);
          
@@ -3035,7 +3052,6 @@ public class Fragments_Action extends Fragment {
 	    	
 		}
 		public void zsjxhoperate(int position){
-			final int qxposition=position;
 			View orderView=View.inflate(getActivity(), R.layout.new_order_zsjxh,null );
 			CheckBox zjcheckbox1=(CheckBox)orderView.findViewById(R.id.checkBox1);
 			CheckBox zjcheckbox2=(CheckBox)orderView.findViewById(R.id.checkBox2);
@@ -3108,7 +3124,7 @@ public class Fragments_Action extends Fragment {
 			 .setView(orderView)
 			 .setCancelable(false)//点击框外不消失
 			 .setPositiveButton(R.string.OK,//确定 
-					 new ActionOrderListener (orderView,position,"PARALLEL",NcEditList,MyAdapter.this))//使用单独创建的类控制详细命令界面的响应!!!											
+					 new ActionOrderListener (orderView,position,"PARALLEL",NcEditList,MyAdapter.this,mListView))//使用单独创建的类控制详细命令界面的响应!!!											
 			 .setNegativeButton("取消", null).show();
 			 //.setContentView(R.layout.nc_listrowcontent);
          
@@ -3123,7 +3139,6 @@ public class Fragments_Action extends Fragment {
 			 dialog2.getWindow().setAttributes(params);//调整弹出窗口的大小自适应屏幕
 		}
 		public void jcoperate(int position){
-			final int qxposition=position;
 			View orderView=View.inflate(getActivity(), R.layout.new_order_jc,null );
 			CheckBox zjcheckbox1=(CheckBox)orderView.findViewById(R.id.checkBox1);
 			CheckBox zjcheckbox2=(CheckBox)orderView.findViewById(R.id.checkBox2);
@@ -3333,7 +3348,7 @@ public class Fragments_Action extends Fragment {
 			 .setView(orderView)
 			 .setCancelable(false)//点击框外不消失
 			 .setPositiveButton(R.string.OK,//确定 
-					 new ActionOrderListener (orderView,position,"SEQUENTIAL",NcEditList,MyAdapter.this))//使用单独创建的类控制详细命令界面的响应!!!											
+					 new ActionOrderListener (orderView,position,"SEQUENTIAL",NcEditList,MyAdapter.this,mListView))//使用单独创建的类控制详细命令界面的响应!!!											
 			 .setNegativeButton("取消", null).show();
 			 //.setContentView(R.layout.nc_listrowcontent);
          
@@ -3350,7 +3365,6 @@ public class Fragments_Action extends Fragment {
 		}
 
 		public void ifwaitoperate(int position){
-			final int qxposition=position;
 			View orderView=View.inflate(getActivity(), R.layout.new_order_ifwait,null );
 			zscheckbox1=(CheckBox)orderView.findViewById(R.id.checkBox1);
 	    	zscheckbox2=(CheckBox)orderView.findViewById(R.id.checkBox2);
@@ -3378,7 +3392,7 @@ public class Fragments_Action extends Fragment {
 			 .setView(orderView)
 			 .setCancelable(false)//点击框外不消失
 			 .setPositiveButton(R.string.OK,//确定 
-					 new ActionOrderListener (orderView,position,"IF",NcEditList,MyAdapter.this))//使用单独创建的类控制详细命令界面的响应!!!											
+					 new ActionOrderListener (orderView,position,"IF",NcEditList,MyAdapter.this,mListView))//使用单独创建的类控制详细命令界面的响应!!!											
 			 .setNegativeButton("取消", null).show();
 			 //.setContentView(R.layout.nc_listrowcontent);
          
@@ -3401,8 +3415,7 @@ public class Fragments_Action extends Fragment {
 			Spinner InfoText =  (Spinner) orderView.findViewById(R.id.CerrectInfo);//@+id/CerrectInfo
 	    	if(editText_WAIT==null){return;}
 	    	if(InfoText==null){return;}
-	    	Button TimerAdd = (Button) orderView.findViewById(R.id.addTimer);
-	    	int i = Config.list_timername.size()+1;
+	    	orderView.findViewById(R.id.addTimer);
 	    	HashMap<String, Object>item = (HashMap<String, Object>) Fragments_Action.mListView.getItemAtPosition(qxposition);
 	    	String orderTxt=item.get("orderSpinner").toString();
 			if(orderTxt.contains("TWAIT")){
@@ -3492,7 +3505,7 @@ public class Fragments_Action extends Fragment {
 			 .setView(orderView)
 			 .setCancelable(false)//点击框外不消失
 			 .setPositiveButton(R.string.OK,//确定 
-					 new ActionOrderListener (orderView,position,"WAIT",NcEditList,MyAdapter.this))//使用单独创建的类控制详细命令界面的响应!!!											
+					 new ActionOrderListener (orderView,position,"WAIT",NcEditList,MyAdapter.this,mListView))//使用单独创建的类控制详细命令界面的响应!!!											
 			 .setNegativeButton("取消", null).show();
           
 			 WindowManager manager = getActivity().getWindowManager(); 
@@ -3506,6 +3519,120 @@ public class Fragments_Action extends Fragment {
 			 dialog2.getWindow().setAttributes(params);//调整弹出窗口的大小自适应屏幕
 			 opTxt = "";
 	    }
+		
+		
+		
+		class PListener implements OnTouchListener {
+			private  EditText myEt;
+			private AlertDialog valueDialog;
+			int touch_flag=0;
+
+			PListener(EditText et) {
+				myEt = et;
+			}
+
+			/* (non-Javadoc)
+			 * @see android.view.View.OnTouchListener#onTouch(android.view.View, android.view.MotionEvent)
+			 */
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				// TODO Auto-generated method stub
+				touch_flag++;
+				Log.e("mpeng"," the touch is "+touch_flag);
+				if(touch_flag==2)
+				{
+				final EditText etEditText = new EditText(getActivity());
+				// 限制只能输入0~9的数字和点号
+				//设定位置，限制输入正负浮点数
+				switch(v.getId())
+				{
+				case R.id.speed:
+					InputFilter[] filters = {new InputFilter.LengthFilter(2)};				
+					etEditText.setFilters(filters);					
+					etEditText.setHint("支持格式为1-10正数");
+					etEditText.setKeyListener(new NumberKeyListener() {
+						@Override
+						protected char[] getAcceptedChars() {
+							return new char[] { '1', '2', '3', '4', '5', '6','7', '8', '9', '0'};
+						}
+						
+						@Override
+						public int getInputType() {
+							return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+						}
+					});
+					break;
+				case R.id.aspeed:
+				case R.id.dspeed:
+					InputFilter[] filters1 = {new InputFilter.LengthFilter(1)};				
+					etEditText.setFilters(filters1);					
+					etEditText.setHint("支持格式为1-5正数");
+					etEditText.setKeyListener(new NumberKeyListener() {
+						@Override
+						protected char[] getAcceptedChars() {
+							return new char[] { '1', '2', '3', '4', '5'};
+						}
+						
+						@Override
+						public int getInputType() {
+							return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+						}
+					});
+					break;
+				default:
+					InputFilter[] filters11 = {new InputFilter.LengthFilter(7)};				
+					etEditText.setFilters(filters11);	
+					etEditText.setHint("支持格式为#####.#的正负数，整数最多5位，小数最多1位");
+					etEditText.setKeyListener(new NumberKeyListener() {
+						@Override
+						protected char[] getAcceptedChars() {
+							return new char[] { '1', '2', '3', '4', '5', '6', '7',
+									'8', '9', '0', '.'  ,'+','-'};
+						}
+
+						@Override
+						public int getInputType() {
+							return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
+						}
+					});
+					break;
+				}	
+				// 初始化滑动条，调整设定值
+				TextView t = (TextView) v;
+				String valueString = t.getText().toString();// 设定位置
+				etEditText.setText(valueString);
+				etEditText.setSelection(valueString.length());// 设置光标位置
+				valueDialog = new AlertDialog.Builder(getActivity())
+				.setTitle("请添加设定值")
+				.setView(etEditText)
+				.setPositiveButton(R.string.OK,
+						new DialogInterface.OnClickListener() {/* (non-Javadoc)
+						 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
+						 */
+						@Override
+						public void onClick(DialogInterface dialog,
+								int which) {
+							// TODO Auto-generated method stub
+							myEt.setText(etEditText.getText().toString());
+							
+						}
+					
+				}).setNegativeButton(R.string.CANCEL,null).show();
+				valueDialog.setOnDismissListener(new OnDismissListener() {
+					
+					@Override
+					public void onDismiss(DialogInterface dialog) {
+						// TODO Auto-generated method stub
+						touch_flag=0;
+					}
+				});
+			}
+				
+				return false;
+			}
+
+			}
+		
 	}
 	/**
 	 * 替代format出错的函数，给标号自动补位添0
@@ -3600,8 +3727,7 @@ public class Fragments_Action extends Fragment {
 	}
 	private void restoreDataToNC3()
 	{
-		int i = 0;
-        Iterator<HashMap<String,Object>> iterator = nc3ListBackup.iterator();
+		Iterator<HashMap<String,Object>> iterator = nc3ListBackup.iterator();
         nc3List.removeAll(nc3List);
         while (iterator.hasNext()) {         	
         		nc3List.add((HashMap<String, Object>) iterator.next().clone());       	

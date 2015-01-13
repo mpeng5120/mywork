@@ -14,6 +14,7 @@ import com.dataInAddress.Define;
 import com.explain.HexDecoding;
 import com.explain.TableToBinary;
 import com.tr.R;
+import com.tr.programming.Config;
 import com.wifiexchange.ChatListener;
 import com.wifiexchange.WifiSetting_Info;
 
@@ -164,7 +165,8 @@ public class DelayTimerQueryRunnble implements Runnable {
 					} catch (Exception e) {
 						e.printStackTrace();
 						destroy();
-					}						
+					}	
+					if(Config.isMutiThread)	
 						 WifiSetting_Info.LOCK.wait();					
 				}
 			}

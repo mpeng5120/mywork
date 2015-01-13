@@ -27,6 +27,7 @@ import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Notification;
@@ -1016,6 +1017,18 @@ public class TR_Main_Activity extends Activity {
 		Log.e("mpeng","main onCreate");
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		System.out.println("TR_Main_Activity onCreate");
+		 ActivityManager manager = (ActivityManager) this.getSystemService(
+	                Context.ACTIVITY_SERVICE);
+	        ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+	        manager.getMemoryInfo(memInfo);
+	        manager.getMemoryClass();
+	        Log.e("mpeng"," 1: "+ manager.getMemoryClass()
+	        		+"2: "+memInfo.toString()
+	        		);
+	        Log.e("mpeng"," 3: "+ manager.getLargeMemoryClass()
+	    	        		+"4: "+memInfo.toString()
+	    	        		);
+	        
 //		ExitTR.getInstance().addActivity(this);
 		ProgramList= ArrayListBound.getNCeditList3Data();
 		sharedPreference_password = getSharedPreferences("password",

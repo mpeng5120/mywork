@@ -122,11 +122,11 @@ public class FinishRunnable implements Runnable{
 		if(i==0){
 		   Toast.makeText(tempActivity, tempString, Toast.LENGTH_SHORT).show();
 		}
-		else if(i==55)
-		{
-			Toast.makeText(tempActivity, tempString, Toast.LENGTH_SHORT).show();
-			PlcDataQueryRunnable.issendStop = false;
-		}
+//		else if(i==55)
+//		{
+//			Toast.makeText(tempActivity, tempString, Toast.LENGTH_SHORT).show();
+//			PlcDataQueryRunnable.issendStop = false;
+//		}
 		WifiSetting_Info.blockFlag=true;
 		//WifiSetting_Info.sendProgrammingfinish=1;
 		if(i==2){

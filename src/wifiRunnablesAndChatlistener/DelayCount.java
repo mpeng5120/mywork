@@ -6,6 +6,7 @@ import com.tr.R;
 
 import android.app.Activity;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,33 +42,35 @@ public class DelayCount extends CountDownTimer {
 	public void onFinish() {     
 		try {
 			
-			if (selectstrString.equals("freePoint")) {
-                      
-                        if(tempListView.getChildAt(0)==null){
-                        	System.out.println("tempListView.getChildAt(0)==null");
-                        }
-                        
-					if((tempListView.getChildAt(0).findViewById(R.id.currentPos_free_setting))==null){
-						return;
-					}
-					if((tempListView.getChildAt(1).findViewById(R.id.currentPos_free_setting))==null){
-						return;
-					}
-					if((tempListView.getChildAt(2).findViewById(R.id.currentPos_free_setting))==null){
-						return;
-					}
-					if((tempListView.getChildAt(3).findViewById(R.id.currentPos_free_setting))==null){
-						return;
-					}
-					if((tempListView.getChildAt(4).findViewById(R.id.currentPos_free_setting))==null){
-						return;
-					}
-				
-					
-			} else if(selectstrString.equals("counter")){
+//			if (selectstrString.equals("freePoint")) {
+//                      
+//                        if(tempListView.getChildAt(0)==null){
+//                        	System.out.println("tempListView.getChildAt(0)==null");
+//                        }
+//                        
+//					if((tempListView.getChildAt(0).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//					if((tempListView.getChildAt(1).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//					if((tempListView.getChildAt(2).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//					if((tempListView.getChildAt(3).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//					if((tempListView.getChildAt(4).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//				
+//					
+//			} else
+			if(selectstrString.equals("counter")){
 				new Thread(new CounterQueryRunnable(targetActivity, tempListView)).start();
 				
 			}else if(selectstrString.equals("option")){
+				Log.i("mpeng","1111111111111");
 				new Thread(new DelayoptionQueryRunnble(targetActivity, tempListView)).start();
 				
 			}

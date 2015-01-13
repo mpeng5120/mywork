@@ -577,4 +577,20 @@
 	<string name="hand_operation">手动操作</string>
 	<string name="other_setting">其它设定</string>
     
+	
+	    
+    <string name="main_mode_manual">手动</string>
+    <string name="main_mode_origin">原点</string>
+    <string name="main_mode_step">步进</string>
+    <string name="main_mode_automatic">自动</string>
+    <string name="main_mode_startStop">开始/停止</string>
+
+    <string name="main_autoStart">自动开始</string>
+    <string name="main_autoWait">自动待机</string>
+    <string name="setting_rememberPos">位置记忆</string>
+    
+    <string name="main_periodicSurveillance">周期监视（s）</string>
+    <string name="main_periodicSurveilliance_molding">成型周期</string>
+    <string name="main_periodicSurveillance_out">取出周期</string>
+    <string name="main_periodicSurveillance_full">全  周  期</string>
 </resources>

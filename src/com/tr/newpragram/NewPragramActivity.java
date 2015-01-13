@@ -68,7 +68,7 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 	private LinearLayout FragmentDatil;
 	private LinearLayout FragmentOther;
 	private android.app.Fragment listFragment ;			
-	private android.app.Fragment detailFragment ;
+	private android.app.Fragment PositionPreviewFragment ;
 	private android.app.Fragment FragmentMoudle;	
 	private android.app.Fragment FragmentExtra;	
 	private android.app.Fragment FragmentFreeOption;	
@@ -119,7 +119,7 @@ public class NewPragramActivity extends FragmentActivity implements TabListener 
 				FragmentDatil = (LinearLayout) findViewById(R.id.detail_container);
 				FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
 				listFragment = new FragmentList();		
-				detailFragment = new FragmentDetail();
+				PositionPreviewFragment = new FragmentDetail();
 				arguments.clear();
 				arguments.putString("changeStatus", "isPosition");
 //				otherFragment = new Fragments_Action();
@@ -560,7 +560,7 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 //	        		detailSettingFragment!=null||
 		        	if(actionBar.getSelectedNavigationIndex()==1&&detailSettingFragment!=null&&detailSettingFragment.isAdded())
 		        	{
-		        		Log.e("mpeng","get action !!!!!!!!!");
+		        		Log.e("mpeng","get action 111 !!!!!!!!!");
 		        		 byte[] keycode = new byte[2];
 		            	 keycode = intent.getExtras().getByteArray("keycode");
 		            	 KeyMsgHandle(keycode,context);
@@ -568,7 +568,7 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 		        	}
 		        	else if(actionBar.getSelectedNavigationIndex()==3)
 		        	{
-		        		Log.e("mpeng","get action !!!!!!!!!");
+		        		Log.e("mpeng","get action  222 !!!!!!!!!");
 		        		 byte[] keycode = new byte[2];
 		            	 keycode = intent.getExtras().getByteArray("keycode");
 		            	 KeyMsgHandle(keycode,context);
@@ -578,25 +578,26 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 		        	{
 		        		 byte[] keycode = new byte[2];
 		            	 keycode = intent.getExtras().getByteArray("keycode");
-		        		 int Key_Value = keycode[0] & 0xFF;//255
-		        		 if(Key_Value==153)
-		        			 return;
-		        		 Log.e("mpeng","get action !!!!!!!!!");
-		        	    if(KeyMsgDialog != null)
-			            	KeyMsgDialog.dismiss();
-			             KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
-			            .setMessage("是否要进行自由操作！")
-			            .setNegativeButton("确定", new DialogInterface.OnClickListener() {
-							
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								// TODO Auto-generated method stub
-									actionBar.setSelectedNavigationItem(3);
-								
-							}
-						})
-			            .setPositiveButton("取消", null)
-			            .show();
+		            	 KeyMsgHandleOtherFragment(keycode,context);
+//		        		 int Key_Value = keycode[0] & 0xFF;//255
+//		        		 if(Key_Value==153)
+//		        			 return;
+//		        		 Log.e("mpeng","get action  333 !!!!!!!!!");
+//		        	    if(KeyMsgDialog != null)
+//			            	KeyMsgDialog.dismiss();
+//			             KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
+//			            .setMessage("是否要进行自由操作！")
+//			            .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+//							
+//							@Override
+//							public void onClick(DialogInterface dialog, int which) {
+//								// TODO Auto-generated method stub
+//									actionBar.setSelectedNavigationItem(3);
+//								
+//							}
+//						})
+//			            .setPositiveButton("取消", null)
+//			            .show();
 		        	}
 	        	}
 	        	else if(action.equals("ThreadOption"))
@@ -641,9 +642,10 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 		{
 			final   FragmentManager fragmentManager1 = this.getFragmentManager();
 			final   FragmentTransaction fragmentTransaction1 = fragmentManager1.beginTransaction();		
-			Log.d(TAG,"SwitchDetailFg goPositionPreview");
+			Log.i(TAG,"SwitchDetailFg goPositionPreview");
+			PositionPreviewFragment.setArguments(arguments);
 			fragmentTransaction1.remove(detailSettingFragment);
-			fragmentTransaction1.add(R.id.detail_container, detailFragment, null);
+			fragmentTransaction1.add(R.id.detail_container, PositionPreviewFragment, null);
 			fragmentTransaction1.commitAllowingStateLoss();	
 		}
 		else if(str.equals("gotoDetailSetting"))
@@ -651,12 +653,14 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 //			//从列表页面传递需要的参数到详情页面
 			final   FragmentManager fragmentManager1 = this.getFragmentManager();
 			final   FragmentTransaction fragmentTransaction1 = fragmentManager1.beginTransaction();	
+				fragmentTransaction1.remove(PositionPreviewFragment);
+			if(detailSettingFragment!=null)
+				fragmentTransaction1.remove(detailSettingFragment);
 			detailSettingFragment = new FragmentOne();
-			detailSettingFragment.setArguments(mBundle);
-			fragmentTransaction1.remove(detailFragment);
+			detailSettingFragment.setArguments(mBundle);			
 			fragmentTransaction1.add(R.id.detail_container, detailSettingFragment, null);
 			fragmentTransaction1.commitAllowingStateLoss();			
-			Log.d(TAG,"SwitchDetailFg gotoDetailSetting:"+FgTransaction);		
+			Log.i(TAG,"SwitchDetailFg gotoDetailSetting:"+FgTransaction);		
 
 
 		}else if(str.equals("highlight"))
@@ -712,11 +716,11 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 	   
 	        	if(FragmentOther == null)
 	        			FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
-	        	detailFragment.setArguments(arguments);
+	        	PositionPreviewFragment.setArguments(arguments);
 				FragmentOther.setVisibility(View.GONE);	
 				FragmentContainer.setVisibility(View.VISIBLE);
 	        	ft.add(R.id.list_container, listFragment, null);
-	        	ft.add(R.id.detail_container, detailFragment, null);
+	        	ft.add(R.id.detail_container, PositionPreviewFragment, null);
 	       	 break;
 	        case 2:
 	        	
@@ -819,11 +823,11 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
         			FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
         	
 
-        	detailFragment.setArguments(arguments);
+        	PositionPreviewFragment.setArguments(arguments);
 			FragmentOther.setVisibility(View.GONE);	
 			FragmentContainer.setVisibility(View.VISIBLE);
         	ft.add(R.id.list_container, listFragment, null);
-        	ft.add(R.id.detail_container, detailFragment, null);
+        	ft.add(R.id.detail_container, PositionPreviewFragment, null);
   
 
 			
@@ -905,7 +909,7 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
        	 break;
         case 1:   
         	ft.remove(listFragment);
-        	ft.remove(detailFragment);
+        	ft.remove(PositionPreviewFragment);
         	
         	if(detailSettingFragment!=null)
         		ft.remove(detailSettingFragment);
@@ -1402,4 +1406,66 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 	 		 }
 	 		
 	 	}
+	  private void KeyMsgHandleOtherFragment(byte[]  kc ,Context context)
+		{
+				byte [] temp= new byte[2];
+				System.arraycopy(kc, 0, temp, 0, 2);
+			 int Key_Value =HexDecoding.Array2Toint(temp);//255
+			 int Key_Function = kc[2] & 0xFF;//255
+//			 if(KeyMsgDialog != null)
+//	         	KeyMsgDialog.dismiss();
+//	          KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
+//	         .setMessage("keyvalue:"+ Key_Value+"keyfunction :"+Key_Function)
+//	         .setPositiveButton("OK", null).show();
+//			
+			 switch(Key_Value)
+			 {
+			 	 case 14:	
+			 		KeyCodeSend.send(999, NewPragramActivity.this);
+				 break;
+			 	 case 11:  //HOME		 		 	
+			 	 case 12:			 		
+			 	 case 34:		 		
+			 	 case 13:		 	
+			 	 case 24:		 	
+			 	 case 33:		 	
+			 	 case 23:		 	
+			 	 //case 153:
+			 		 if(Key_Function==0)
+			 		 {
+			 			 Log.e("mpeng","SHOW key msg dialog");
+				        if(KeyMsgDialog != null)
+			            	KeyMsgDialog.dismiss();
+			             KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
+			            .setMessage("是否要进行自由操作！"+ Key_Value)
+			            .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+							
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								// TODO Auto-generated method stub
+								actionBar.setSelectedNavigationItem(3);
+							}
+						})
+			            .setPositiveButton("取消", null)
+			            .show();
+			             KeyMsgDialog.setCanceledOnTouchOutside(false);
+			 		 }
+			 		 break;
+			 		 
+			 		 
+			 	 case 32:
+			 		 KeyCodeSend.send(26, NewPragramActivity.this);		 		 
+			 		 break;
+			 	 case 22:
+			 		KeyCodeSend.send(25, NewPragramActivity.this);
+			 		 break;
+			 	 case 31:
+			 		KeyCodeSend.send(24, NewPragramActivity.this);
+			 		 break;
+			 	 case 21:
+			 		KeyCodeSend.send(23, NewPragramActivity.this);
+			 		 break;	 
+			 }
+			
+		}
 }
