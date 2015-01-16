@@ -24,11 +24,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.text.InputType;
 import android.text.method.NumberKeyListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -139,6 +141,7 @@ public class Fragments_Mechanical_Parameter extends Fragment {
 		selectedItemShared=getActivity().getSharedPreferences("selectedItem",0);
 		selectedItemShared_Spinner=getActivity().getSharedPreferences("selectedItem_Spinner",0);
 		//selectedItemShared_num=getActivity().getSharedPreferences("selectedItemShared_num",0);
+
 		DataFeedback = new ChatListener() {
 			@Override
 			public void onChat(byte[] message) {
@@ -191,8 +194,11 @@ public class Fragments_Mechanical_Parameter extends Fragment {
 			Bundle savedInstanceState) {
 		System.out.println("Fragments_Mechanical_Parameter onCreateView");
 		getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-		return inflater.inflate(R.layout.tab_parameter_setting_mechanical,
+//		InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+//		m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+		View view = inflater.inflate(R.layout.tab_parameter_setting_mechanical,
 				container, false);
+		return view;
 	}
 	public OnItemSelectedListener mechanicalChoose_Listener=new OnItemSelectedListener() {
 
@@ -1065,6 +1071,7 @@ public class Fragments_Mechanical_Parameter extends Fragment {
 			public void onClick(final View v) {
 
 				final EditText etEditText = new EditText(getActivity());
+				etEditText.setInputType(InputType.TYPE_NULL);
 				String setValueString = mAppList.get(position).get(
 						keyString[2]).toString();
 				etEditText.setHint("请输入数字");
@@ -1082,8 +1089,7 @@ public class Fragments_Mechanical_Parameter extends Fragment {
 					public int getInputType() {
 						return android.text.InputType.TYPE_CLASS_NUMBER;// 数字键盘
 					}
-				});
-
+				});			
 				new AlertDialog.Builder(getActivity())
 				.setTitle("请添加设定值")
 				.setView(etEditText)

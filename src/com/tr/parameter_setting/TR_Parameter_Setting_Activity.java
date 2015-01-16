@@ -44,6 +44,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 
@@ -99,11 +100,11 @@ public class TR_Parameter_Setting_Activity extends Activity implements TabListen
 	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
 		super.onCreate(savedInstanceState);	
 		System.out.println("TR_Parameter_Setting_Activity onCreate");
-		ExitTR.getInstance().addActivity(this);
+//		ExitTR.getInstance().addActivity(this);
 		setContentView(R.layout.tr_parameter_setting);
+
 		init_TR_Parameter_Setting();
 		
 	}

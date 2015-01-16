@@ -102,6 +102,7 @@ import com.tr.programming.TR_Programming_Activity;
 import com.wifiexchange.ChatListener;
 import com.wifiexchange.Client;
 import com.wifiexchange.WifiSetting_Info;
+
 /**
  * 
  * @ClassName: TR_Main_Activity
@@ -1009,7 +1010,7 @@ public class TR_Main_Activity extends Activity {
 
 	};
 	
-
+	
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -1028,7 +1029,7 @@ public class TR_Main_Activity extends Activity {
 	        Log.e("mpeng"," 3: "+ manager.getLargeMemoryClass()
 	    	        		+"4: "+memInfo.toString()
 	    	        		);
-	        
+  
 //		ExitTR.getInstance().addActivity(this);
 		ProgramList= ArrayListBound.getNCeditList3Data();
 		sharedPreference_password = getSharedPreferences("password",
@@ -4376,24 +4377,25 @@ QueryArmDataFeedback = new ChatListener() {
 		 		 if(Key_Function==0)
 		 		 {
 		 			 Log.e("mpeng","SHOW key msg dialog");
-			        if(KeyMsgDialog != null)
-		            	KeyMsgDialog.dismiss();
-		             KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
-		            .setMessage("是否要进行自由操作！"+ Key_Value)
-		            .setNegativeButton("确定", new DialogInterface.OnClickListener() {
-						
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							// TODO Auto-generated method stub
-							Intent it = new Intent();
-							it.setClass(TR_Main_Activity.this,NewPragramActivity.class);
-							it.setFlags(3);
-							startActivity(it);
-						}
-					})
-		            .setPositiveButton("取消", null)
-		            .show();
-		             KeyMsgDialog.setCanceledOnTouchOutside(false);
+			        if(KeyMsgDialog == null)
+			        {		            
+			             KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
+			            .setMessage("是否要进行自由操作！"+ Key_Value)
+			            .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+							
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								// TODO Auto-generated method stub
+								Intent it = new Intent();
+								it.setClass(TR_Main_Activity.this,NewPragramActivity.class);
+								it.setFlags(3);
+								startActivity(it);
+							}
+						})
+			            .setPositiveButton("取消", null)
+			            .show();
+			             KeyMsgDialog.setCanceledOnTouchOutside(false);
+			        }
 		 		 }
 		 		 break;
 		 		 

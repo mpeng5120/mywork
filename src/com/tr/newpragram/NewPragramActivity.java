@@ -460,7 +460,7 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 				public void run() {
 					actionBar.setSelectedNavigationItem(3);
 				}
-			} , 20);
+			} , 1);
 			
 		}	
 		if(it.getBooleanExtra("jxwzsetting", false))
@@ -478,7 +478,7 @@ public OnClickListener mode_automatic_listener = new OnClickListener() {
 				public void run() {
 					actionBar.setSelectedNavigationItem(3);
 				}
-			} , 20);
+			} , 1);
 		}
 		
 		if(it.getBooleanExtra("timersetting", false))

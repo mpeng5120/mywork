@@ -21,6 +21,7 @@ import com.explain.TableToBinary;
 import com.tr.R;
 import com.tr.main.TR_Main_Activity;
 import com.tr.programming.Config;
+import com.wifiexchange.ChatListener;
 import com.wifiexchange.WifiSetting_Info;
 
 import android.os.Bundle;
@@ -51,6 +52,7 @@ import android.widget.ToggleButton;
 import android.widget.TextView.OnEditorActionListener;
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -130,6 +132,7 @@ public class FragmentOne extends Fragment {
 	private SendDataRunnable sendDataRunnable;
 	private FinishRunnable sendDataFinishRunnable;
 	private WifiReadDataFormat formatReadMessage;
+	private ChatListener SendOverTodo;
 	private byte[] getData;
 	
 	private FpAdapter fpmyAdapter;
@@ -253,123 +256,130 @@ public class FragmentOne extends Fragment {
 		zEditTxt =(EditText) getActivity().findViewById(R.id.zEditText) ;
 		hEditTxt =(EditText) getActivity().findViewById(R.id.hEditText) ;
 		lEditTxt =(EditText) getActivity().findViewById(R.id.lEditText) ;
-		OnEditorActionListener sendData=new OnEditorActionListener() {
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				 {
-					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-					 String editString ="";
-					 switch (v.getId()) {
-						case R.id.xEditText:
-							editString = xEditTxt.getText().toString().trim();
-							break;
-						case R.id.yEditText:
-							editString = yEditTxt.getText().toString().trim();
-							break;
-						case R.id.zEditText:
-							editString = zEditTxt.getText().toString().trim();
-							break;
-						case R.id.hEditText:
-							editString = hEditTxt.getText().toString().trim();
-							break;
-                        case R.id.lEditText:
-                        	editString = lEditTxt.getText().toString().trim();
-							break;
-						default:
-							break;
-						}
-					 if (editString.equals("") ) {
-							Toast.makeText(getActivity(),"数据为空，请重新输入",Toast.LENGTH_SHORT).show();
-							editString = "";
-							return false;
-						}
-					 try{
-						 Double.parseDouble(editString);
-				     }catch(Exception e){
-						e.printStackTrace();
-						Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
-						return false;
-					 }
-						double editDouble=0;
-						 if (!editString.startsWith(".")) {
-								if (editString.contains(".")) {
-									String[] editStrings = editString.split("\\.");
-									if (2 == editStrings.length) {
-										editDouble = Double.parseDouble(editString);
-										if (Math.abs(editDouble) >99999.9) {
-											Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
-											editString = "";
-											return false;
-										} else {
-											editString = String.format("%1$5.1f",editDouble);
-										}
-									} else {
-										Toast.makeText(getActivity(),"数据格式错误，请重新输入",Toast.LENGTH_SHORT).show();
-										editString = "";
-										return false;
-									}
-								} else {
-									editDouble = Double.parseDouble(editString);
-									if (Math.abs(editDouble) >99999.9) {
-										Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
-										editString = "";
-										return false;
-									} else {
-										editString = String.format("%1$5.1f",editDouble);
-									}
-								}
 
-							} else {
-								Toast.makeText(getActivity(),"数据格式错误，请重新输入",Toast.LENGTH_SHORT).show();
-								editString = "";
-								return false;
-							}
-						
-							final byte[] temp=new byte[4];
-							
-							int send_address=AddressPublic.model_P_point_Head
-									+(AddressPublic.model_SP_point_Head-AddressPublic.model_P_point_Head)/Define.MAX_STDPOINT_NUM
-									*(TableToBinary.searchAddress(posname,false)-1);
-					
-							 switch (v.getId()) {
-								case R.id.xEditText:
-									send_address=send_address;
-									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
-									break;
-								case R.id.yEditText:
-									send_address=send_address+4;
-									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
-									break;
-								case R.id.zEditText:
-									send_address=send_address+8;
-									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
-									break;
-								case R.id.hEditText:
-									send_address=send_address+12;
-									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
-									break;
-		                        case R.id.lEditText:
-		                        	send_address=send_address+16;
-		                        	System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
-									break;
-								default:
-									break;
-								}
-
-							WifiSendDataFormat posMemorySendDataFormat = new WifiSendDataFormat(temp, send_address);
-							sendDataRunnable = new SendDataRunnable(posMemorySendDataFormat, getActivity());
-								FinishRunnable memoryTodo = new FinishRunnable(getActivity(),"数据发送完毕");
-								sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, memoryTodo));
-								getActivity().runOnUiThread(sendDataRunnable);
-		               return true;
-		         }
-			}
-		};
-		xEditTxt.setOnEditorActionListener(sendData);
-		yEditTxt.setOnEditorActionListener(sendData);
-		zEditTxt.setOnEditorActionListener(sendData);
-		hEditTxt.setOnEditorActionListener(sendData);
-		lEditTxt.setOnEditorActionListener(sendData);
+		xEditTxt.setOnTouchListener(new PListener(xEditTxt));
+		yEditTxt.setOnTouchListener(new PListener(yEditTxt));
+		zEditTxt.setOnTouchListener(new PListener(zEditTxt));
+		hEditTxt.setOnTouchListener(new PListener(hEditTxt));
+		lEditTxt.setOnTouchListener(new PListener(lEditTxt));
+		
+//		OnEditorActionListener sendData=new OnEditorActionListener() {
+//			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//				 {
+//					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+//					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+//					 String editString ="";
+//					 switch (v.getId()) {
+//						case R.id.xEditText:
+//							editString = xEditTxt.getText().toString().trim();
+//							break;
+//						case R.id.yEditText:
+//							editString = yEditTxt.getText().toString().trim();
+//							break;
+//						case R.id.zEditText:
+//							editString = zEditTxt.getText().toString().trim();
+//							break;
+//						case R.id.hEditText:
+//							editString = hEditTxt.getText().toString().trim();
+//							break;
+//                        case R.id.lEditText:
+//                        	editString = lEditTxt.getText().toString().trim();
+//							break;
+//						default:
+//							break;
+//						}
+//					 if (editString.equals("") ) {
+//							Toast.makeText(getActivity(),"数据为空，请重新输入",Toast.LENGTH_SHORT).show();
+//							editString = "";
+//							return false;
+//						}
+//					 try{
+//						 Double.parseDouble(editString);
+//				     }catch(Exception e){
+//						e.printStackTrace();
+//						Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+//						return false;
+//					 }
+//						double editDouble=0;
+//						 if (!editString.startsWith(".")) {
+//								if (editString.contains(".")) {
+//									String[] editStrings = editString.split("\\.");
+//									if (2 == editStrings.length) {
+//										editDouble = Double.parseDouble(editString);
+//										if (Math.abs(editDouble) >99999.9) {
+//											Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
+//											editString = "";
+//											return false;
+//										} else {
+//											editString = String.format("%1$5.1f",editDouble);
+//										}
+//									} else {
+//										Toast.makeText(getActivity(),"数据格式错误，请重新输入",Toast.LENGTH_SHORT).show();
+//										editString = "";
+//										return false;
+//									}
+//								} else {
+//									editDouble = Double.parseDouble(editString);
+//									if (Math.abs(editDouble) >99999.9) {
+//										Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
+//										editString = "";
+//										return false;
+//									} else {
+//										editString = String.format("%1$5.1f",editDouble);
+//									}
+//								}
+//
+//							} else {
+//								Toast.makeText(getActivity(),"数据格式错误，请重新输入",Toast.LENGTH_SHORT).show();
+//								editString = "";
+//								return false;
+//							}
+//						
+//							final byte[] temp=new byte[4];
+//							
+//							int send_address=AddressPublic.model_P_point_Head
+//									+(AddressPublic.model_SP_point_Head-AddressPublic.model_P_point_Head)/Define.MAX_STDPOINT_NUM
+//									*(TableToBinary.searchAddress(posname,false)-1);
+//					
+//							 switch (v.getId()) {
+//								case R.id.xEditText:
+//									send_address=send_address;
+//									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
+//									break;
+//								case R.id.yEditText:
+//									send_address=send_address+4;
+//									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
+//									break;
+//								case R.id.zEditText:
+//									send_address=send_address+8;
+//									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
+//									break;
+//								case R.id.hEditText:
+//									send_address=send_address+12;
+//									System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
+//									break;
+//		                        case R.id.lEditText:
+//		                        	send_address=send_address+16;
+//		                        	System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(editString)*100)), 0, temp, 0, 4);
+//									break;
+//								default:
+//									break;
+//								}
+//
+//							WifiSendDataFormat posMemorySendDataFormat = new WifiSendDataFormat(temp, send_address);
+//							sendDataRunnable = new SendDataRunnable(posMemorySendDataFormat, getActivity());
+//								FinishRunnable memoryTodo = new FinishRunnable(getActivity(),"数据发送完毕");
+//								sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, memoryTodo));
+//								getActivity().runOnUiThread(sendDataRunnable);
+//		               return true;
+//		         }
+//			}
+//		};
+//		xEditTxt.setOnEditorActionListener(sendData);
+//		yEditTxt.setOnEditorActionListener(sendData);
+//		zEditTxt.setOnEditorActionListener(sendData);
+//		hEditTxt.setOnEditorActionListener(sendData);
+//		lEditTxt.setOnEditorActionListener(sendData);
 		
 	
 		
@@ -518,149 +528,152 @@ public class FragmentOne extends Fragment {
 		aspeed=(EditText)getActivity().findViewById(R.id.aspeed);
 		dspeed=(EditText)getActivity().findViewById(R.id.dspeed);
 		speed.setOnTouchListener(new PListener(speed));
-		speed.setOnEditorActionListener(new OnEditorActionListener() {
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				 {
-					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-					 if(speed.getText().toString().equals("")){
-						 Toast.makeText(getActivity(),"速度为空，请重新输入", Toast.LENGTH_SHORT).show();
-						 return false;
-					 }
-					 try{
-						 Float.parseFloat(speed.getText().toString()); 
-					  }catch(Exception e){
-							e.printStackTrace();
-							Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
-							return false;
-					 }
-					 int ccint=(int)Float.parseFloat(speed.getText().toString());
-					 if(ccint>100||ccint==0){
-						 Toast.makeText(getActivity(),"速度范围1~100", Toast.LENGTH_SHORT).show();
-						 return false;
-					 }
-					//设定速度
-					 byte[] temp=new byte[1];
-						System.arraycopy(HexDecoding.int2byte(ccint), 0, temp, 0, 1);
-
-						try {
-
-							sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_cc), getActivity());
-
-							sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
-
-							sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
-
-							getActivity().runOnUiThread(sendDataRunnable);
-							
-
-						} catch (Exception e) {
-							// TODO: handle exception
-							e.printStackTrace();
-						}
-						
-						
-		               return true;
-		         }
-			}
-		});
+		aspeed.setOnTouchListener(new PListener(aspeed));
+		dspeed.setOnTouchListener(new PListener(dspeed));
+//		speed.setOnEditorActionListener(new OnEditorActionListener() {
+//			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//				 {
+//					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+//					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+//					 if(speed.getText().toString().equals("")){
+//						 Toast.makeText(getActivity(),"速度为空，请重新输入", Toast.LENGTH_SHORT).show();
+//						 return false;
+//					 }
+//					 try{
+//						 Float.parseFloat(speed.getText().toString()); 
+//					  }catch(Exception e){
+//							e.printStackTrace();
+//							Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+//							return false;
+//					 }
+//					 int ccint=(int)Float.parseFloat(speed.getText().toString());
+//					 if(ccint>100||ccint==0){
+//						 Toast.makeText(getActivity(),"速度范围1~100", Toast.LENGTH_SHORT).show();
+//						 return false;
+//					 }
+//					//设定速度
+//					 byte[] temp=new byte[1];
+//						System.arraycopy(HexDecoding.int2byte(ccint), 0, temp, 0, 1);
+//
+//						try {
+//
+//							sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_cc), getActivity());
+//
+//							sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
+//
+//							sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
+//
+//							getActivity().runOnUiThread(sendDataRunnable);
+//							
+//
+//						} catch (Exception e) {
+//							// TODO: handle exception
+//							e.printStackTrace();
+//						}
+//						
+//						
+//		               return true;
+//		         }
+//			}
+//		});
 		
-		aspeed.setOnEditorActionListener(new OnEditorActionListener() {
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				 {
-					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-					 if(aspeed.getText().toString().equals("")){
-						 Toast.makeText(getActivity(),"加速度为空，请重新输入", Toast.LENGTH_SHORT).show();
-						 return false;
-					 }
-					 try{
-						 Float.parseFloat(aspeed.getText().toString()); 
-					  }catch(Exception e){
-							e.printStackTrace();
-							Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
-							return false;
-					 }
-					 int accint=(int)Float.parseFloat(aspeed.getText().toString());
-					 if(accint>5){
-						 Toast.makeText(getActivity(),"加速度范围1~5", Toast.LENGTH_SHORT).show();
-						 return false;
-					 }
-					//设定速度
-					 byte[] temp=new byte[1];
-						System.arraycopy(HexDecoding.int2byte(accint), 0, temp, 0, 1);
-
-						try {
-
-							sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_acc), getActivity());
-
-							sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
-
-							sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
-
-							getActivity().runOnUiThread(sendDataRunnable);
-							
-
-						} catch (Exception e) {
-							// TODO: handle exception
-							e.printStackTrace();
-						}
-						
-		               return true;
-		         }
-			}
-		});
+//		aspeed.setOnEditorActionListener(new OnEditorActionListener() {
+//			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//				 {
+//					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+//					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+//					 if(aspeed.getText().toString().equals("")){
+//						 Toast.makeText(getActivity(),"加速度为空，请重新输入", Toast.LENGTH_SHORT).show();
+//						 return false;
+//
+//					 }
+//					 try{
+//						 Float.parseFloat(aspeed.getText().toString()); 
+//					  }catch(Exception e){
+//							e.printStackTrace();
+//							Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+//							return false;
+//					 }
+//					 int accint=(int)Float.parseFloat(aspeed.getText().toString());
+//					 if(accint>5){
+//						 Toast.makeText(getActivity(),"加速度范围1~5", Toast.LENGTH_SHORT).show();
+//						 return false;
+//					 }
+//					//设定速度
+//					 byte[] temp=new byte[1];
+//						System.arraycopy(HexDecoding.int2byte(accint), 0, temp, 0, 1);
+//
+//						try {
+//
+//							sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_acc), getActivity());
+//
+//							sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
+//
+//							sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
+//
+//							getActivity().runOnUiThread(sendDataRunnable);
+//							
+//
+//						} catch (Exception e) {
+//							// TODO: handle exception
+//							e.printStackTrace();
+//						}
+//						
+//		               return true;
+//		         }
+//			}
+//		});
 		
-		dspeed.setOnEditorActionListener(new OnEditorActionListener() {
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				 {
-					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-					 if(dspeed.getText().toString().equals("")){
-						 Toast.makeText(getActivity(),"减速度为空，请重新输入", Toast.LENGTH_SHORT).show();
-						 return false;
-					 }
-					 try{
-						 Float.parseFloat(dspeed.getText().toString()); 
-					  }catch(Exception e){
-							e.printStackTrace();
-							Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
-							return false;
-					 }
-					 int dccint=(int)Float.parseFloat(dspeed.getText().toString());
-					 if(dccint>5){
-						 Toast.makeText(getActivity(),"减速度范围1~5", Toast.LENGTH_SHORT).show();
-						 return false;
-					 }
-					//设定速度
-					 byte[] temp=new byte[1];
-						System.arraycopy(HexDecoding.int2byte(dccint), 0, temp, 0, 1);
-
-						try {
-
-							sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_dcc), getActivity());
-
-							sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
-
-							sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
-
-							getActivity().runOnUiThread(sendDataRunnable);
-							
-
-						} catch (Exception e) {
-							// TODO: handle exception
-							e.printStackTrace();
-						}
-						
-		               return true;
-		         }
-			}
-		});
+//		dspeed.setOnEditorActionListener(new OnEditorActionListener() {
+//			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//				 {
+//					 InputMethodManager m=(InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+//					 m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+//					 if(dspeed.getText().toString().equals("")){
+//						 Toast.makeText(getActivity(),"减速度为空，请重新输入", Toast.LENGTH_SHORT).show();
+//						 return false;
+//					 }
+//					 try{
+//						 Float.parseFloat(dspeed.getText().toString()); 
+//					  }catch(Exception e){
+//							e.printStackTrace();
+//							Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+//							return false;
+//					 }
+//					 int dccint=(int)Float.parseFloat(dspeed.getText().toString());
+//					 if(dccint>5){
+//						 Toast.makeText(getActivity(),"减速度范围1~5", Toast.LENGTH_SHORT).show();
+//						 return false;
+//					 }
+//					//设定速度
+//					 byte[] temp=new byte[1];
+//						System.arraycopy(HexDecoding.int2byte(dccint), 0, temp, 0, 1);
+//
+//						try {
+//
+//							sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_dcc), getActivity());
+//
+//							sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
+//
+//							sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
+//
+//							getActivity().runOnUiThread(sendDataRunnable);
+//							
+//
+//						} catch (Exception e) {
+//							// TODO: handle exception
+//							e.printStackTrace();
+//						}
+//						
+//		               return true;
+//		         }
+//			}
+//		});
 		spProductBFTxt = (TextView) getActivity().findViewById(R.id.productBA_etting);
 		spProductUDTxt =(TextView) getActivity().findViewById(R.id.productUD_setting);
 		
 		positionBtn = (Button) getActivity().findViewById(R.id.positionBtn);
-	        positionBtn.setOnClickListener(new OnClickListener() {
+	    positionBtn.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
@@ -744,13 +757,15 @@ public class FragmentOne extends Fragment {
 			//对于返回的36字节
           try{
 			getData=new byte[formatReadMessage.getLength()];
+			Log.e("mpeng","PreadDataFinishTodo 111 ");
 			//获取返回的数据，从第八位开始拷贝数据
 			if( formatReadMessage.getFinalData() != null)  ////////chenxinhua
 			{
 				System.arraycopy(formatReadMessage.getFinalData(), 0, getData, 0, formatReadMessage.getLength());
-	
+				Log.e("mpeng","PreadDataFinishTodo 222 ");
 				if( getActivity() != null)  
 				{
+					Log.e("mpeng","PreadDataFinishTodo 3333 ");
 					int foot_p=HexDecoding.Array4Toint(getData, 0);
 					int productBA_p=HexDecoding.Array4Toint(getData, 4);
 					int productUD_p=HexDecoding.Array4Toint(getData, 8);
@@ -758,10 +773,11 @@ public class FragmentOne extends Fragment {
 					int feedertroughUD_p=HexDecoding.Array4Toint(getData, 16);
 					xEditTxt.setText(String.format("%1$5.1f",Double.valueOf(foot_p)/100));
 					yEditTxt.setText(String.format("%1$5.1f",Double.valueOf(productBA_p)/100));	
-					hEditTxt.setText(String.format("%1$5.1f",Double.valueOf(productUD_p)/100));	
-					zEditTxt.setText(String.format("%1$5.1f",Double.valueOf(feedertroughBA_p)/100));	
+					zEditTxt.setText(String.format("%1$5.1f",Double.valueOf(productUD_p)/100));	
+					hEditTxt.setText(String.format("%1$5.1f",Double.valueOf(feedertroughBA_p)/100));	
 					lEditTxt.setText(String.format("%1$5.1f",Double.valueOf(feedertroughUD_p)/100));
 					
+					Log.e("mpeng","getData[4*Define.MAX_AXIS_NUM]&0xff:" +(getData[4*Define.MAX_AXIS_NUM+1]&0xff));
 					speed.setText(String.valueOf((int)(getData[4*Define.MAX_AXIS_NUM]&0xff)));	
 					aspeed.setText(String.valueOf((int)(getData[4*Define.MAX_AXIS_NUM+1]&0xff)));	
 					dspeed.setText(String.valueOf((int)(getData[4*Define.MAX_AXIS_NUM+2]&0xff)));
@@ -792,13 +808,17 @@ public class FragmentOne extends Fragment {
 		FpTxt.setVisibility(View.GONE);
 		FpEdtTxt.setVisibility(View.GONE);
 		CurSelInfo.setText(posname);
-		
+		Log.e("mpeng"," swithto position");
 		 xCheckBox=(CheckBox)getActivity().findViewById(R.id.xCcheckBox);
 		 yCheckBox=(CheckBox)getActivity().findViewById(R.id.yCheckBox);
 		 zCheckBox=(CheckBox)getActivity().findViewById(R.id.zCheckBox);
 		 hCheckBox=(CheckBox)getActivity().findViewById(R.id.hCheckBox3);
 		 lCheckBox=(CheckBox)getActivity().findViewById(R.id.lCheckBox3);
-		
+		 xCheckBox.setClickable(false);
+		 yCheckBox.setClickable(false);
+		 zCheckBox.setClickable(false);
+		 hCheckBox.setClickable(false);
+		 lCheckBox.setClickable(false);
 		 if(pspfpaxleFlag[0]==1){
 			 xCheckBox.setChecked(true);
 			 xEditTxt.setEnabled(true);
@@ -1301,7 +1321,7 @@ public class FragmentOne extends Fragment {
 		 * @see android.view.View.OnTouchListener#onTouch(android.view.View, android.view.MotionEvent)
 		 */
 		@Override
-		public boolean onTouch(View v, MotionEvent event) {
+		public boolean onTouch(final View v, MotionEvent event) {
 			// TODO Auto-generated method stub
 			touch_flag++;
 			Log.e("mpeng"," the touch is "+touch_flag);
@@ -1310,6 +1330,234 @@ public class FragmentOne extends Fragment {
 			final EditText etEditText = new EditText(getActivity());
 			// 限制只能输入0~9的数字和点号
 			//设定位置，限制输入正负浮点数
+			
+			// 初始化滑动条，调整设定值
+			TextView t = (TextView) v;
+			String valueString = t.getText().toString();// 设定位置
+			etEditText.setText(valueString);
+			etEditText.setSelection(valueString.length());// 设置光标位置
+			 valueDialog = new AlertDialog.Builder(getActivity())
+			.setTitle("请添加设定值")
+			.setView(etEditText)
+			.setPositiveButton(R.string.OK,
+					new DialogInterface.OnClickListener() {/* (non-Javadoc)
+					 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
+					 */
+					@Override
+					public void onClick(DialogInterface dialog,
+							int which) {
+						// TODO Auto-generated method stub
+						
+						//写入完成后读取数据，然后更新Ui
+						SendOverTodo  = new ChatListener() {
+							
+							@Override
+							public void onChat(byte[] message) {
+								// TODO Auto-generated method stub
+								 int readMessageAddr=send_address_speed-4*Define.MAX_AXIS_NUM;
+								 formatReadMessage=new WifiReadDataFormat(readMessageAddr, 36);
+								 SendDataRunnable sendDataRunnable1 = new SendDataRunnable(formatReadMessage, getActivity());
+								 sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据读取完毕",PreadDataFinishTodo);
+								 sendDataRunnable1.setOnlistener(new NormalChatListenner(sendDataRunnable1, sendDataFinishRunnable));
+								 getActivity().runOnUiThread(sendDataRunnable1);
+							}
+						};
+						
+						if(v.getId() == R.id.speed){//设定速度
+							if(etEditText.getText().toString().equals("")){
+								 Toast.makeText(getActivity(),"速度为空，请重新输入", Toast.LENGTH_SHORT).show();
+								 return;
+							 }
+							 try{
+								 Float.parseFloat(etEditText.getText().toString()); 
+							  }catch(Exception e){
+									e.printStackTrace();
+									Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+									return;
+							 }
+							 int ccint=(int)Float.parseFloat(etEditText.getText().toString());
+							 if(ccint>100||ccint==0){
+								 Toast.makeText(getActivity(),"速度范围1~100", Toast.LENGTH_SHORT).show();
+								 return;
+							 }
+						
+					         byte[] temp=new byte[1];
+							System.arraycopy(HexDecoding.int2byte(ccint), 0, temp, 0, 1);
+							try {
+								sendDataRunnable = new SendDataRunnable(SendOverTodo, new WifiSendDataFormat(temp, send_address_cc), getActivity());
+
+								getActivity().runOnUiThread(sendDataRunnable);
+							} catch (Exception e) {
+								// TODO: handle exception
+								e.printStackTrace();
+							}
+						}else if(v.getId() == R.id.aspeed){  //
+							 if(etEditText.getText().toString().equals("")){
+								 Toast.makeText(getActivity(),"加速度为空，请重新输入", Toast.LENGTH_SHORT).show();
+								 return ;
+							 }
+							 try{
+								 Float.parseFloat(etEditText.getText().toString()); 
+							  }catch(Exception e){
+									e.printStackTrace();
+									Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+									return ;
+							 }
+							 int accint=(int)Float.parseFloat(etEditText.getText().toString());
+							 if(accint>5||accint==0){
+								 Toast.makeText(getActivity(),"加速度范围1~5", Toast.LENGTH_SHORT).show();
+								 return ;
+							 }
+							//设定速度
+							 byte[] temp=new byte[1];
+								System.arraycopy(HexDecoding.int2byte(accint), 0, temp, 0, 1);
+
+								try {
+									sendDataRunnable=new SendDataRunnable(SendOverTodo,new WifiSendDataFormat(temp, send_address_acc), getActivity());
+
+									getActivity().runOnUiThread(sendDataRunnable);
+									
+
+								} catch (Exception e) {
+									// TODO: handle exception
+									e.printStackTrace();
+								}
+							
+						}else if(v.getId() == R.id.dspeed){  //
+							
+							 if(etEditText.getText().toString().equals("")){
+								 Toast.makeText(getActivity(),"减速度为空，请重新输入", Toast.LENGTH_SHORT).show();
+								 return ;
+							 }
+							 try{
+								 Float.parseFloat(etEditText.getText().toString()); 
+							  }catch(Exception e){
+									e.printStackTrace();
+									Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+									return ;
+							 }
+							 int dccint=(int)Float.parseFloat(etEditText.getText().toString());
+							 if(dccint>5||dccint==0){
+								 Toast.makeText(getActivity(),"减速度范围1~5", Toast.LENGTH_SHORT).show();
+								 return ;
+							 }
+							//设定速度
+							 byte[] temp=new byte[1];
+								System.arraycopy(HexDecoding.int2byte(dccint), 0, temp, 0, 1);
+
+								try {
+
+									sendDataRunnable=new SendDataRunnable(SendOverTodo,new WifiSendDataFormat(temp, send_address_dcc), getActivity());
+
+									getActivity().runOnUiThread(sendDataRunnable);
+									
+
+								} catch (Exception e) {
+									// TODO: handle exception
+									e.printStackTrace();
+								}
+								
+						}else
+						{
+							String SendData = etEditText.getText().toString();
+							 if (SendData.equals("") ) {
+									Toast.makeText(getActivity(),"数据为空，请重新输入",Toast.LENGTH_SHORT).show();
+									SendData = "";
+									return ;
+								}
+							 try{
+								 Double.parseDouble(SendData);
+						     }catch(Exception e){
+								e.printStackTrace();
+								Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
+								return ;
+							 }
+								double editDouble=0;
+								 if (!SendData.startsWith(".")) {
+										if (SendData.contains(".")) {
+											String[] editStrings = SendData.split("\\.");
+											if (2 == editStrings.length) {
+												editDouble = Double.parseDouble(SendData);
+												if (Math.abs(editDouble) >99999.9) {
+													Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
+													SendData = "";
+													return ;
+												} else {
+													SendData = String.format("%1$5.1f",editDouble);
+												}
+											} else {
+												Toast.makeText(getActivity(),"数据格式错误，请重新输入",Toast.LENGTH_SHORT).show();
+												SendData = "";
+												return ;
+											}
+										} else {
+											editDouble = Double.parseDouble(SendData);
+											if (Math.abs(editDouble) >99999.9) {
+												Toast.makeText(getActivity(),"数据超过范围，请重新输入",Toast.LENGTH_SHORT).show();
+												SendData = "";
+												return ;
+											} else {
+												SendData = String.format("%1$5.1f",editDouble);
+											}
+										}
+
+									} else {
+										Toast.makeText(getActivity(),"数据格式错误，请重新输入",Toast.LENGTH_SHORT).show();
+										SendData = "";
+										return ;
+									}
+								
+									final byte[] temp=new byte[4];
+									
+									int send_address=AddressPublic.model_P_point_Head
+											+(AddressPublic.model_SP_point_Head-AddressPublic.model_P_point_Head)/Define.MAX_STDPOINT_NUM
+											*(TableToBinary.searchAddress(posname,false)-1);
+							
+									 switch (v.getId()) {
+										case R.id.xEditText:
+											send_address=send_address;
+											System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(SendData)*100)), 0, temp, 0, 4);
+											break;
+										case R.id.yEditText:
+											send_address=send_address+4;
+											System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(SendData)*100)), 0, temp, 0, 4);
+											break;
+										case R.id.zEditText:
+											send_address=send_address+8;
+											System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(SendData)*100)), 0, temp, 0, 4);
+											break;
+										case R.id.hEditText:
+											send_address=send_address+12;
+											System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(SendData)*100)), 0, temp, 0, 4);
+											break;
+				                        case R.id.lEditText:
+				                        	send_address=send_address+16;
+				                        	System.arraycopy(HexDecoding.int2byteArray4((int)(Float.parseFloat(SendData)*100)), 0, temp, 0, 4);
+											break;
+										default:
+											break;
+										}
+									
+//									WifiSendDataFormat posMemorySendDataFormat = new WifiSendDataFormat(temp, send_address);
+//									sendDataRunnable = new SendDataRunnable(posMemorySendDataFormat, getActivity());
+//										FinishRunnable memoryTodo = new FinishRunnable(getActivity(),"数据发送完毕");
+//										sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, memoryTodo));
+									 sendDataRunnable=new SendDataRunnable(SendOverTodo, new WifiSendDataFormat(temp, send_address), getActivity());
+										getActivity().runOnUiThread(sendDataRunnable);
+						}
+						
+					}
+				
+			}).setNegativeButton(R.string.CANCEL,null).show();
+			valueDialog.setOnDismissListener(new OnDismissListener() {
+				
+				@Override
+				public void onDismiss(DialogInterface dialog) {
+					// TODO Auto-generated method stub
+					touch_flag=0;
+
+				}
+			});
 			switch(v.getId())
 			{
 			case R.id.speed:
@@ -1363,74 +1611,14 @@ public class FragmentOne extends Fragment {
 				});
 				break;
 			}	
-			// 初始化滑动条，调整设定值
-			TextView t = (TextView) v;
-			String valueString = t.getText().toString();// 设定位置
-			etEditText.setText(valueString);
-			etEditText.setSelection(valueString.length());// 设置光标位置
-			valueDialog = new AlertDialog.Builder(getActivity())
-			.setTitle("请添加设定值")
-			.setView(etEditText)
-			.setPositiveButton(R.string.OK,
-					new DialogInterface.OnClickListener() {/* (non-Javadoc)
-					 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
-					 */
-					@Override
-					public void onClick(DialogInterface dialog,
-							int which) {
-						// TODO Auto-generated method stub
-						if(speed.getText().toString().equals("")){
-							 Toast.makeText(getActivity(),"速度为空，请重新输入", Toast.LENGTH_SHORT).show();
-							 return;
-						 }
-						 try{
-							 Float.parseFloat(speed.getText().toString()); 
-						  }catch(Exception e){
-								e.printStackTrace();
-								Toast.makeText(getActivity(),"数据有误，请重新输入",Toast.LENGTH_SHORT).show();
-								return;
-						 }
-						 int ccint=(int)Float.parseFloat(speed.getText().toString());
-						 if(ccint>100||ccint==0){
-							 Toast.makeText(getActivity(),"速度范围1~100", Toast.LENGTH_SHORT).show();
-							 return;
-						 }
-						//设定速度
-						 byte[] temp=new byte[1];
-							System.arraycopy(HexDecoding.int2byte(ccint), 0, temp, 0, 1);
-
-							try {
-
-								sendDataRunnable=new SendDataRunnable(new WifiSendDataFormat(temp, send_address_cc), getActivity());
-
-								sendDataFinishRunnable=new FinishRunnable(getActivity(), "数据发送完毕");
-
-								sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable,sendDataFinishRunnable));
-
-								getActivity().runOnUiThread(sendDataRunnable);
-								
-
-							} catch (Exception e) {
-								// TODO: handle exception
-								e.printStackTrace();
-							}
-							
-						
-					}
-				
-			}).setNegativeButton(R.string.CANCEL,null).show();
-			valueDialog.setOnDismissListener(new OnDismissListener() {
-				
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-					// TODO Auto-generated method stub
-					touch_flag=0;
-				}
-			});
 		}
 			
 			return false;
 		}
 
 		}
+  private void checkData()
+  {
+	  
+  }
 }

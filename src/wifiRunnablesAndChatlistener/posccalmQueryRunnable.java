@@ -180,9 +180,11 @@ public class posccalmQueryRunnable implements Runnable{
 	/***
 	 * 读取伺服参数时的通信线程收到信息时的处理函数. 
 	 */
+	
 	private final ChatListener ReadDataFeedback = new ChatListener() {
 		@Override
 		public void onChat(byte[] message) {
+
 			if(!chatlistener_flag)
 				return;
 			//返回的标志位STS1处的判断以及和校验
@@ -475,7 +477,17 @@ public class posccalmQueryRunnable implements Runnable{
 							      }
 							}else{					
 								
-								for(int i1=0;i1<list_alarmzb.size();i1++){									
+								for(int i1=0;i1<list_alarmzb.size();i1++){	
+									if(list_alarmzb.get(i1).get("alarmzbnum").toString().equals(""))
+									{
+										Log.i("mpeng","2234 "+list_alarmzb.get(i1).get("alarmzbnum").toString());
+										return;
+									}
+									if(info[j1].equals(""))
+									{
+										Log.i("mpeng","3234 "+info[j1]);
+										return;
+									}
 									if(list_alarmzb.get(i1).get("alarmzbnum").toString().trim().equals(info[j1].substring(0,4)+info[j1].substring(7, info[j1].length()))){
 										if(info[j1].contains("伺服")){
 											info[j1]=info[j1].substring(0,2)+info[j1].substring(4,5)+info[j1].substring(2,4)+info[j1].substring(5, info[j1].length());

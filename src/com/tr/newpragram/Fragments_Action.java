@@ -1217,7 +1217,7 @@ public class Fragments_Action extends Fragment {
 	qdbtn.setOnClickListener(new OnClickListener() {	
 		public void onClick(View v) {
 			if(myPos != -1)
-			{NCedit_Adapter.zsoperate(myPos);}
+			{NCedit_Adapter.zsoperate(NCedit_Adapter.getSelectItem());}
 			else
 			{
 				if(unFoucsDialog!=null)
@@ -1234,7 +1234,7 @@ public class Fragments_Action extends Fragment {
 	zjbtn.setOnClickListener(new OnClickListener() {	
 		public void onClick(View v) {
 			if(myPos != -1)
-			{NCedit_Adapter.zjoperate( myPos);}
+			{NCedit_Adapter.zjoperate(  NCedit_Adapter.getSelectItem());}
 			else
 			{
 				if(unFoucsDialog!=null)
@@ -1250,7 +1250,7 @@ public class Fragments_Action extends Fragment {
 	zsjxhbtn.setOnClickListener(new OnClickListener() {	
 		public void onClick(View v) {
 			if(myPos != -1)
-			{NCedit_Adapter.zsjxhoperate( myPos);}
+			{NCedit_Adapter.zsjxhoperate(  NCedit_Adapter.getSelectItem());}
 			else
 			{
 				if(unFoucsDialog!=null)
@@ -1266,7 +1266,7 @@ public class Fragments_Action extends Fragment {
 	jcbtn.setOnClickListener(new OnClickListener() {	
 		public void onClick(View v) {
 			if(myPos != -1)
-			{NCedit_Adapter.jcoperate( myPos);}
+			{NCedit_Adapter.jcoperate(  NCedit_Adapter.getSelectItem());}
 			else
 			{
 				if(unFoucsDialog!=null)
@@ -1282,7 +1282,7 @@ public class Fragments_Action extends Fragment {
 	delaytime.setOnClickListener(new OnClickListener() {	
 		public void onClick(View v) {
 			if(myPos != -1)
-			{NCedit_Adapter.delaytimeoperate( myPos);}
+			{NCedit_Adapter.delaytimeoperate(  NCedit_Adapter.getSelectItem());}
 			else
 			{
 				if(unFoucsDialog!=null)
@@ -1302,7 +1302,7 @@ public class Fragments_Action extends Fragment {
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
 			if(myPos != -1)
-			{NCedit_Adapter.ifwaitoperate( myPos);}
+			{NCedit_Adapter.ifwaitoperate(  NCedit_Adapter.getSelectItem());}
 			else
 			{
 				if(unFoucsDialog!=null)
@@ -1334,7 +1334,7 @@ public class Fragments_Action extends Fragment {
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
-			NCedit_Adapter.addOneItem(myPos);
+			NCedit_Adapter.addOneItem( NCedit_Adapter.getSelectItem());
 			NCedit_Adapter.notifyDataSetChanged();			
 		}
 	});
@@ -1343,7 +1343,7 @@ public class Fragments_Action extends Fragment {
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
-			NCedit_Adapter.removeItem(myPos);
+			NCedit_Adapter.removeItem( NCedit_Adapter.getSelectItem());
 			NCedit_Adapter.notifyDataSetChanged();
 			
 		}
