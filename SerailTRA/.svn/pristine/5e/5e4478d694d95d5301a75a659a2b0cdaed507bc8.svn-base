@@ -1,0 +1,172 @@
+package wifiRunnablesAndChatlistener;
+
+import java.util.Map;
+
+import com.tr.R;
+import com.tr.newpragram.NewPragramActivity;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.CountDownTimer;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+/**
+ * 倒计时类，
+ * @author 李婷婷
+ *
+ */
+public class DelayCount extends CountDownTimer {     
+	private Activity targetActivity;
+	private ListView tempListView;
+	
+	private String selectstrString;
+	private CounterQueryRunnable counterQueryRunnable;
+	private DelayoptionQueryRunnble delayoptionQueryRunnble;
+	private UsermodeQueryRunnable usermodeQueryRunnable;
+	private DelayTimerQueryRunnble delayTimerQueryRunnble;
+	private UserdataQueryRunnable userdataQueryRunnable;
+	private AllspeedQueryRunnable allspeedQueryRunnable;
+	public DelayCount(long millisInFuture, long countDownInterval,Activity temp,ListView tempListView,String selectFlag) {     
+		super(millisInFuture, countDownInterval);     
+		
+		targetActivity=temp;
+		this.tempListView=tempListView;
+		if(this.tempListView==null){
+			return;
+		}
+		selectstrString=selectFlag;
+	}     
+	
+	public void destroy() {
+		if(NewPragramActivity.PosccalmRunnable!=null&&selectstrString.equals("freePoint")){
+			NewPragramActivity.PosccalmRunnable.setTextView(null,null,null,null,null);
+//			NewPragramActivity.PosccalmRunnable.destroy();
+//			Intent it = new Intent();
+//	        it.setAction("ThreadOption");
+//	        it.putExtra("Option", "StartThread");
+//	        targetActivity.sendBroadcast(it);
+		}
+		if(counterQueryRunnable!=null){
+			counterQueryRunnable.destroy();
+		}
+		if(delayoptionQueryRunnble!=null){
+			delayoptionQueryRunnble.destroy();
+		}
+		if(usermodeQueryRunnable!=null){
+			usermodeQueryRunnable.destroy();
+		}
+		if(userdataQueryRunnable!=null){
+			userdataQueryRunnable.destroy();
+		}
+		if(allspeedQueryRunnable!=null){
+			allspeedQueryRunnable.destroy();
+		}
+		if(delayTimerQueryRunnble!=null){
+			delayTimerQueryRunnble.destroy();
+		}
+	}
+
+	public byte getCurrentData3() {
+		byte getData3 = usermodeQueryRunnable.getCurrentData3();
+		return getData3;
+	}
+	@Override     
+	public void onFinish() {     
+		try {
+			
+			if (selectstrString.equals("freePoint")) {
+//				if(NewPragramActivity.PosccalmRunnable!=null){
+//	 	        	NewPragramActivity.PosccalmRunnable.destroy();
+//					}
+				
+//				if(NewPragramActivity.PosccalmRunnable.existFlag==false){
+//					 NewPragramActivity.PosccalmRunnable=new posccalmQueryRunnable(
+//							 targetActivity,(TextView)(tempListView.getChildAt(0).findViewById(R.id.currentPos_free_setting)),
+// 							(TextView)(tempListView.getChildAt(1).findViewById(R.id.currentPos_free_setting)),
+// 							(TextView)(tempListView.getChildAt(2).findViewById(R.id.currentPos_free_setting)),
+// 							(TextView)(tempListView.getChildAt(3).findViewById(R.id.currentPos_free_setting)),
+// 							(TextView)(tempListView.getChildAt(4).findViewById(R.id.currentPos_free_setting)),null,null,null,null,null);						
+//					}
+				NewPragramActivity.PosccalmRunnable.setTextView((TextView)(tempListView.getChildAt(0).findViewById(R.id.currentPos_free_setting)),
+							(TextView)(tempListView.getChildAt(1).findViewById(R.id.currentPos_free_setting)),
+							(TextView)(tempListView.getChildAt(2).findViewById(R.id.currentPos_free_setting)),
+							(TextView)(tempListView.getChildAt(3).findViewById(R.id.currentPos_free_setting)),
+							(TextView)(tempListView.getChildAt(4).findViewById(R.id.currentPos_free_setting)));
+//					if(NewPragramActivity.PosccalmRunnable==null){
+//						return;
+//					}
+//					if((tempListView.getChildAt(0).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//					if((tempListView.getChildAt(1).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//					if((tempListView.getChildAt(2).findViewById(R.id.currentPos_free_setting))==null){
+//						return;
+//					}
+//					 new Thread(NewPragramActivity.PosccalmRunnable).start();
+					
+			}else if(selectstrString.equals("counter")){
+				if(counterQueryRunnable!=null){
+					counterQueryRunnable.destroy();
+				}
+                if(counterQueryRunnable.existFlag==false){
+                	counterQueryRunnable=new CounterQueryRunnable(targetActivity, tempListView);
+                }
+				new Thread(counterQueryRunnable).start();			
+			}else if(selectstrString.equals("option")){
+				if(delayoptionQueryRunnble!=null){
+					delayoptionQueryRunnble.destroy();
+				}
+                if(delayoptionQueryRunnble.existFlag==false){
+                	delayoptionQueryRunnble=new DelayoptionQueryRunnble(targetActivity, tempListView);
+                }
+				new Thread(delayoptionQueryRunnble).start();					
+			}else if(selectstrString.equals("usermode")){
+				if(usermodeQueryRunnable!=null){
+					usermodeQueryRunnable.destroy();
+				}
+                if(usermodeQueryRunnable.existFlag==false){
+                	usermodeQueryRunnable=new UsermodeQueryRunnable(targetActivity, tempListView);
+                }
+				new Thread(usermodeQueryRunnable).start();				
+			}else if(selectstrString.equals("userdata")){
+				if(userdataQueryRunnable!=null){
+					userdataQueryRunnable.destroy();
+				}
+                if(userdataQueryRunnable.existFlag==false){
+                	userdataQueryRunnable=new UserdataQueryRunnable(targetActivity, tempListView);
+                }
+				new Thread(userdataQueryRunnable).start();				
+			}else if(selectstrString.equals("allspeed")){
+				if(allspeedQueryRunnable!=null){
+					allspeedQueryRunnable.destroy();
+				}
+                if(allspeedQueryRunnable.existFlag==false){
+                	allspeedQueryRunnable=new AllspeedQueryRunnable(targetActivity, 
+                			(TextView)(tempListView.getChildAt(0).findViewById(R.id.editname)),
+							(TextView)(tempListView.getChildAt(1).findViewById(R.id.editname)),
+							(TextView)(tempListView.getChildAt(2).findViewById(R.id.editname)));
+                }
+				new Thread(allspeedQueryRunnable).start();				
+			}else if(selectstrString.equals("iowatch")){
+				if(delayTimerQueryRunnble!=null){
+					delayTimerQueryRunnble.destroy();
+				}
+                if(delayTimerQueryRunnble.existFlag==false){
+                	delayTimerQueryRunnble=new DelayTimerQueryRunnble(targetActivity, tempListView);
+                }
+				new Thread(delayTimerQueryRunnble).start();				
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+	}     
+	@Override     
+	public void onTick(long millisUntilFinished) {}    
+}   

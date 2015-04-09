@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:widget="http://schemas.android.com/apk/res/com.tr"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+            <com.tr.widget.PositionItemWidget
+                android:id="@+id/Xwidget"
+		        android:layout_width="match_parent"
+		        android:layout_height="0dip"
+		        android:layout_weight="1" 
+		        widget:checkbox_text = " X"/>
+            <com.tr.widget.PositionItemWidget
+                android:id="@+id/ywidget"
+		        android:layout_width="match_parent"
+		        android:layout_height="0dip"
+		        android:layout_weight="1" 
+		        widget:checkbox_text = " Y"	/>
+            <com.tr.widget.PositionItemWidget
+                android:id="@+id/zwidget"
+		        android:layout_width="match_parent"
+		        android:layout_height="0dip"
+		        android:layout_weight="1" 
+		        widget:checkbox_text = " Z"/>
+            <com.tr.widget.PositionItemWidget
+                android:id="@+id/hwidget"
+		        android:layout_width="match_parent"
+		        android:layout_height="0dip"
+		        android:layout_weight="1" 
+		        widget:checkbox_text = " H"		    
+		        />
+            <com.tr.widget.PositionItemWidget
+                android:id="@+id/lwidget"
+		        android:layout_width="match_parent"
+		        android:layout_height="0dip"
+		        android:layout_weight="1" 
+		        widget:checkbox_text = " L"		    
+		        />
+         <RadioGroup 
+			        android:id="@+id/armRdioGroup"
+					android:layout_width="wrap_content"
+					android:layout_height="0dip"
+					android:layout_gravity="center_horizontal"					
+					android:layout_weight="1"					
+					android:orientation="horizontal">
+					    <RadioButton
+					      android:id="@+id/ProductArm"
+						  android:layout_width="150dip"
+						  android:layout_height="80dip"
+						  android:layout_gravity="center"
+						  android:button="@null"	
+						  android:background="@drawable/radiobtnselector"	
+						  android:text="教行制品臂" />
+					    <RadioButton
+					      android:id="@+id/FeedArm"
+						  android:layout_width="150dip"
+						  android:layout_height="80dip"
+						  android:layout_gravity="center"
+			 			  android:background="@drawable/radiobtnselector"
+						  android:button="@null"
+						  android:text="教行料道臂" />			
+					</RadioGroup> 
+</LinearLayout>

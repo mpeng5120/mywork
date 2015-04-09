@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="positionitem">
+        <attr name="checkbox_text" format="string"/>
+        <attr name="textview" format="string"/>
+        <attr name="edit_text" format="string"/>
+        <attr name="button_text" format="string"/>
+     </declare-styleable>      
+</resources>

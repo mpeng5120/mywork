@@ -1,0 +1,1736 @@
+package com.tr.newpragram;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+
+import wifiProtocol.WifiReadDataFormat;
+import wifiProtocol.WifiSendDataFormat;
+import wifiRunnablesAndChatlistener.FinishRunnable;
+import wifiRunnablesAndChatlistener.KeyCodeSend;
+import wifiRunnablesAndChatlistener.NormalChatListenner;
+import wifiRunnablesAndChatlistener.SendDataRunnable;
+import wifiRunnablesAndChatlistener.posccalmQueryRunnable;
+
+import com.dbutils.ArrayListBound;
+import com.dbutils.Constans;
+import com.explain.HexDecoding;
+import com.tr.R;
+import com.tr.main.TR_Main_Activity;
+import com.tr.maintainguide.TR_MaintainGuide_Activity;
+import com.tr.parameter_setting.TR_Parameter_Setting_Activity;
+import com.tr.programming.Config;
+import com.tr.programming.TR_Programming_Activity;
+import com.wifiexchange.WifiSetting_Info;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+import android.app.ActionBar.TabListener;
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.app.Instrumentation;
+import android.app.NotificationManager;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+
+import android.support.v4.app.FragmentActivity;
+import android.text.InputFilter;
+import android.text.method.NumberKeyListener;
+import android.text.method.PasswordTransformationMethod;
+
+
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+public class NewPragramActivity extends FragmentActivity implements TabListener {
+	private UpdateFragmentReceiver FR = null;
+	private final String TAG ="MainActivity";
+	private Bundle mBundle;	
+	private LinearLayout FragmentContainer;
+	private LinearLayout FragmentDatil;
+	private LinearLayout FragmentOther;
+	private android.app.Fragment listFragment ;			
+	private android.app.Fragment PositionPreviewFragment ;
+	private android.app.Fragment FragmentMoudle;	
+	private android.app.Fragment FragmentExtra;	
+	private android.app.Fragment FragmentFreeOption;	
+	private android.app.Fragment FragmentAciton;	
+	private Fragment detailSettingFragment;	
+	
+	
+
+	private    FragmentTransaction FgTransaction;
+	private Handler myHandler;
+	private String myName;
+
+	private Button ydBtn;
+	private Button zdBtn;
+	private Button dbjBtn;
+	private Button dxhBtn;
+	private TextView myMoudleInfo;
+	private ArrayList<HashMap<String, Object>> list_mould_setting = ArrayListBound.getMouldDataListData();
+	private static boolean clicked_btn_origin = false;
+	private static boolean clicked_btn_step = false;
+	private static boolean clicked_btn_automatic = false;
+	private static final int manual_ID = 10;
+	
+	private ArrayList<String> list_mouldname=new ArrayList<String>();
+	private ArrayList<String> list_mouldnum=new ArrayList<String>();
+	private String saveStrname;
+	public static ArrayList<HashMap<String, Object>> nctestlist = null;
+	private AlertDialog nocationDialog;
+	private static ActionBar actionBar;
+	private AlertDialog  KeyMsgDialog;
+	private Thread PoccQueryThread ;
+	public static  posccalmQueryRunnable  PosccalmRunnable;	
+	private Bundle arguments = new Bundle(); 	
+	private WifiReadDataFormat formatReadusermode;
+	private SendDataRunnable sendDatausermodeRunnable;
+	private FinishRunnable sendDataFinishRunnable;
+	private WifiSendDataFormat formatSendMessage;
+	private SendDataRunnable sendDataRunnable;
+	private byte[] getData;
+	private SharedPreferences sharedPreference_password;
+	public static Boolean alreadyChecked_settingPassword=false;
+	private String password_setting;
+	private static String title_lock_programming = "已锁定";
+	
+	private LinearLayout  buttonView;
+	private int unseltab = -1;
+	private boolean  fromDialog = false;
+	private static Tab selTab = null;	
+	public static boolean DownloadOrNot  =false;
+/**
+	 * @return the downloadOrNot
+	 */
+	public static boolean isDownloadOrNot() {
+		return DownloadOrNot;
+	}
+	/**
+	 * @param downloadOrNot the downloadOrNot to set
+	 */
+	public static void setDownloadOrNot(boolean downloadOrNot) {
+		DownloadOrNot = downloadOrNot;
+	}
+
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+//		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+		super.onCreate(savedInstanceState);
+				setContentView(R.layout.activity_main);
+				sharedPreference_password = getSharedPreferences("password",
+						Context.MODE_PRIVATE);
+//				initData();
+				buttonView = (LinearLayout)findViewById(R.id.ButtonControl); 
+				FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);
+				FragmentDatil = (LinearLayout) findViewById(R.id.detail_container);
+				FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+				listFragment = new FragmentList();		
+				PositionPreviewFragment = new FragmentDetail();
+				arguments.clear();
+				arguments.putString("changeStatus", "isPosition");
+//				otherFragment = new Fragments_Action();
+				
+//				FragmentManager fragmentManager;
+//				FragmentTransaction fragmentTransaction;
+//				fragmentManager = getSupportFragmentManager();
+//				fragmentTransaction = fragmentManager.beginTransaction();
+	ydBtn=(Button)findViewById(R.id.button1);
+				zdBtn=(Button)findViewById(R.id.button3);
+				dbjBtn=(Button)findViewById(R.id.button4);
+				dxhBtn=(Button)findViewById(R.id.button5);
+				ydBtn.setOnClickListener(mode_origin_listener);
+				zdBtn.setOnClickListener(mode_automatic_listener);
+				dbjBtn.setOnClickListener(mode_step_listener);
+//				dxhBtn.setOnClickListener(mode_origin_listener);
+				myMoudleInfo = (TextView) findViewById(R.id.ModleInfo);
+				myMoudleInfo.setText(TR_Main_Activity.title_mouldData);
+				initView();
+//		//列表页面需要显示的Fragment
+//				com.tr.newpragram.FragmentList listFragment = new FragmentList();				
+//				FragmentManager fragmentManager1 = getSupportFragmentManager();
+//				FragmentTransaction fragmentTransaction1 = fragmentManager1.beginTransaction();
+//				fragmentTransaction1.add(R.id.list_container, listFragment);				
+//				fragmentTransaction1.commit();
+//				
+//				//实例化详情Fragment
+//				Fragment detailFragment = new FragmentDetail();				
+//				//从列表页面传递需要的参数到详情页面				
+//				final FragmentManager fragmentManager11 = getSupportFragmentManager();
+//				final FragmentTransaction fragmentTransaction11 = fragmentManager11.beginTransaction();				
+//				fragmentTransaction11.replace(R.id.detail_container, detailFragment);		
+//				fragmentTransaction11.commit();
+				
+		//注册广播监听
+		FR = new UpdateFragmentReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("gotoDetailSetting");
+        filter.addAction("goPositionPreview");
+        filter.addAction("highlight");
+        filter.addAction("KeyMsg");
+        filter.addAction("ThreadOption");
+        registerReceiver(FR, filter);
+        
+        /**
+		 * 第一次进入设定类界面需要密码获得权限
+		 */
+		if (alreadyChecked_settingPassword) {//已经解锁
+			Toast.makeText(this, "当前处于解锁状态", Toast.LENGTH_SHORT).show();
+		}else {//否则先输密码解锁
+			password_setting=sharedPreference_password.getString("password_setting", "");
+			if (password_setting.equals("")) {//保存的密码为空，改变标志位
+				alreadyChecked_settingPassword=true;
+				new AlertDialog.Builder(this).setTitle("警告")
+						.setMessage("当前无密码，处于解锁状态，要锁定请先前往维护界面设置设定密码")
+						.setPositiveButton("知道了", null).show();
+//				updateAdapter();
+			}else {//密码不为空
+				//输密码的输入控制
+				final EditText editText =new EditText(this);
+				editText.setHint("请输入密码，20位以内");
+				editText.setTransformationMethod(PasswordTransformationMethod.getInstance());//设置密码为不可见。
+				editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(20)});
+				editText.setKeyListener(new NumberKeyListener() {
+					    @Override
+					    protected char[] getAcceptedChars() {
+					        return new char[] { 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+		        					'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		        					'1', '2', '3', '4', '5', '6', '7', '8','9', '0'};
+					    }
+					    @Override
+					    public int getInputType() {
+					        return android.text.InputType.TYPE_CLASS_TEXT;
+					    }
+					});	
+				new AlertDialog.Builder(this)
+						.setTitle("请输入编程密码以获得权限")
+						.setView(editText)
+						.setPositiveButton("确定",
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,int which) {
+										String password_input = editText.getText().toString().trim();
+										if (password_setting.equals(password_input)) {//输入正确就改变标志位，解锁并关闭窗口
+											
+											Toast.makeText(NewPragramActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
+											alreadyChecked_settingPassword=true;//标志位设为真
+//											updateAdapter();
+											try {//消失
+							                    Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing" );  
+							                    field.setAccessible( true );  
+							                    field.set(dialog, true );//将mShowing变量设为true，表示对话框未关闭     
+							                }catch (Exception e) {
+							                	e.printStackTrace(); 
+											}
+							                dialog.dismiss();
+							                
+										}else {//不正确，重输，窗口保留
+											try {//不消失
+												Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing");
+												field.setAccessible(true);
+												field.set(dialog,false);//将mShowing变量设为false，表示对话框已关闭，欺骗android系统
+											} catch (Exception e) {
+												e.printStackTrace();
+											}
+											
+											editText.setText("");
+											editText.setHint("设定密码输入不正确，请重输");
+											
+										}
+
+									}
+								})
+						.setNegativeButton("取消",
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,int which) {
+										
+										try {//消失
+						                    Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing" );  
+						                    field.setAccessible( true );  
+						                    field.set(dialog, true );//将mShowing变量设为true，表示对话框未关闭     
+						                }catch (Exception e) {
+						                	e.printStackTrace(); 
+										}
+						                dialog.dismiss();
+									}
+								}).show();
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * 初始化组件
+	 */
+
+	
+
+	//获取返回的数据后进行的UI操作
+	private final Runnable originDataFinishTodo = new Runnable(){
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
+			{
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x40));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, NewPragramActivity.this);
+				sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this);
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
+	};
+	
+	private final Runnable stepDataFinishTodo = new Runnable(){
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
+			{
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x80));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, NewPragramActivity.this);
+				sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this);
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
+	};
+	
+	private final Runnable automaticDataFinishTodo = new Runnable(){
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			//对于返回的36字节
+			//发送正确且完成
+			//处理返回的数据	
+			getData=new byte[formatReadusermode.getLength()];
+			//获取返回的数据，从第八位开始拷贝数据
+			if( formatReadusermode.getFinalData() != null)  
+			{
+			   System.arraycopy(formatReadusermode.getFinalData(), 0, getData, 0, formatReadusermode.getLength());
+			   int zjz=(int)(getData[0]&0x0F);
+			   getData=HexDecoding.int2byte((int)(zjz|0x20));
+			   try{
+			    formatSendMessage=new WifiSendDataFormat(getData, 0x200000AF);
+                sendDataRunnable=new SendDataRunnable(formatSendMessage, NewPragramActivity.this);
+				sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this);
+				sendDataRunnable.setOnlistener(new NormalChatListenner(sendDataRunnable, sendDataFinishRunnable));
+				runOnUiThread(sendDataRunnable);
+			   } catch (Exception e) {
+				   e.printStackTrace();
+			   }
+		    }
+		}
+	};
+/**
+ * 原点模式Listener
+ */
+public OnClickListener mode_origin_listener = new OnClickListener() {
+
+	@Override
+	public void onClick(View v) {
+		if (WifiSetting_Info.mClient == null) {
+			Toast.makeText(NewPragramActivity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (!clicked_btn_origin) {
+			clicked_btn_origin = true;
+			clicked_btn_step = false;
+			clicked_btn_automatic = false;
+			// 删除之前我们定义的通知
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			notificationManager.cancel(manual_ID);
+		}
+		
+		formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+		try {
+			sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,NewPragramActivity.this);
+			sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this,originDataFinishTodo);
+			sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+			runOnUiThread(sendDatausermodeRunnable);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		//if(checked_origin_start_stop==false){
+		new AlertDialog.Builder(NewPragramActivity.this)
+		.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executeydcz)
+		.setPositiveButton(R.string.T_titleexecute,
+				new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog,
+					int which) {
+				// TODO Auto-generated method stub
+				//checked_origin_start_stop = true;
+				KeyCodeSend.send(5, NewPragramActivity.this);
+			}
+
+		}).setNegativeButton(R.string.T_titlecancel,null).show();
+		/*}else{
+			new AlertDialog.Builder(TR_Main_Activity.this)
+			.setTitle("操作提示").setMessage("是否停止原点操作？")
+			.setPositiveButton("停止",
+					new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog,
+						int which) {
+					// TODO Auto-generated method stub
+					checked_origin_start_stop = false;
+					KeyCodeSend.send(5, TR_Main_Activity.this);
+				}
+
+			}).setNegativeButton("取消",null).show();
+		}*/
+			}
+};
+
+/**
+ * 步进模式Listener
+ */
+public OnClickListener mode_step_listener = new OnClickListener() {
+
+	@Override
+	public void onClick(View v) {
+		if (WifiSetting_Info.mClient == null) {
+			Toast.makeText(NewPragramActivity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (!clicked_btn_step) {
+			clicked_btn_origin = false;
+			clicked_btn_step = true;
+			clicked_btn_automatic = false;
+			// 删除之前我们定义的通知
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			notificationManager.cancel(manual_ID);
+		}
+		formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+		try {
+			sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,NewPragramActivity.this);
+			sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this,stepDataFinishTodo);
+			sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+			runOnUiThread(sendDatausermodeRunnable);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		new AlertDialog.Builder(NewPragramActivity.this)
+		.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executebjcz)
+		.setPositiveButton(R.string.T_titleonestepexecute,
+				new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog,
+					int which) {
+				// TODO Auto-generated method stub
+				KeyCodeSend.send(5, NewPragramActivity.this);
+			}
+
+		}).setNegativeButton(R.string.T_titlecancel,null).show();
+
+				}
+};
+
+/**
+ * 自动模式Listener
+ */
+public OnClickListener mode_automatic_listener = new OnClickListener() {
+
+	@Override
+	public void onClick(View v) {
+		if (WifiSetting_Info.mClient == null) {
+			Toast.makeText(NewPragramActivity.this,"请先连接主机", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (!clicked_btn_automatic) {
+			clicked_btn_origin = false;
+			clicked_btn_step = false;
+			clicked_btn_automatic = true;
+			// 删除之前我们定义的通知
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			notificationManager.cancel(manual_ID);
+
+		}
+		formatReadusermode = new WifiReadDataFormat(0x200000AF,1);
+		try {
+			sendDatausermodeRunnable=new SendDataRunnable(formatReadusermode,NewPragramActivity.this);
+			sendDataFinishRunnable=new FinishRunnable(NewPragramActivity.this,automaticDataFinishTodo);
+			sendDatausermodeRunnable.setOnlistener(new NormalChatListenner(sendDatausermodeRunnable, sendDataFinishRunnable));
+			runOnUiThread(sendDatausermodeRunnable);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		//if(checked_automatic_start_stop==false){
+		new AlertDialog.Builder(NewPragramActivity.this)
+		.setTitle(R.string.T_titlenotice).setMessage(R.string.T_executezdcz)
+		.setPositiveButton(R.string.T_titleexecute,
+				new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog,
+					int which) {
+				// TODO Auto-generated method stub
+				//checked_automatic_start_stop = true;
+				KeyCodeSend.send(5, NewPragramActivity.this);
+			}
+
+		}).setNegativeButton(R.string.T_titlecancel,null).show();
+	/*	}else{
+			new AlertDialog.Builder(TR_Main_Activity.this)
+			.setTitle("操作提示").setMessage("是否停止自动操作？")
+			.setPositiveButton("停止",
+					new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog,
+						int which) {
+					// TODO Auto-generated method stub
+					checked_automatic_start_stop = false;
+					KeyCodeSend.send(5, TR_Main_Activity.this);
+				}
+
+			}).setNegativeButton("取消",null).show();
+		}*/
+				}
+};
+
+
+
+
+	
+	private void initView(){
+		// 提示getActionBar方法一定在setContentView后面
+
+		actionBar = getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		actionBar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_TITLE);
+		actionBar.addTab(actionBar.newTab().setText(R.string.moudle_data).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.move_teach).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.action_modify).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.hand_operation).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.other_setting).setTabListener(this));
+		
+	}
+	public static  void  reselctBar()
+	{
+//		if(DownloadOrNot)
+		{
+			DownloadOrNot = false;
+			Log.e("mpeng","selTab.getPosition() is "+selTab.getPosition());
+			actionBar.setSelectedNavigationItem(selTab.getPosition());
+		}
+	}
+	
+	
+/* (non-Javadoc)
+	 * @see android.support.v4.app.FragmentActivity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		Intent it = getIntent(); 
+		Handler myh = new Handler();
+		
+		if(it.getFlags()==3)
+		{
+			
+			myh.postDelayed(new Runnable() {
+				public void run() {
+					actionBar.setSelectedNavigationItem(3);
+				}
+			} , 1);
+			
+		}	
+		if(it.getBooleanExtra("jxwzsetting", false))
+		{
+			myh.postDelayed(new Runnable() {
+				public void run() {
+					actionBar.setSelectedNavigationItem(1);
+				}
+			} , 20);
+		}
+		
+		if(it.getBooleanExtra("zyczsetting", false))
+		{
+			myh.postDelayed(new Runnable() {
+				public void run() {
+					actionBar.setSelectedNavigationItem(3);
+				}
+			} , 1);
+		}
+		
+		if(it.getBooleanExtra("timersetting", false))
+		{
+			arguments.clear();
+			arguments.putString("changeStatus", "istimer");
+			myh.postDelayed(new Runnable() {
+				public void run() {
+					actionBar.setSelectedNavigationItem(1);
+				}
+			} , 20);
+		}
+		if(it.getBooleanExtra("countersetting", false))
+		{
+			arguments.clear();
+			arguments.putString("changeStatus", "iscounter");
+			myh.postDelayed(new Runnable() {
+				public void run() {
+					actionBar.setSelectedNavigationItem(1);
+				}
+			} , 20);
+		}
+		if(PosccalmRunnable!=null)
+			PosccalmRunnable.destroy();
+		PosccalmRunnable = new posccalmQueryRunnable(NewPragramActivity.this);
+		PoccQueryThread = new Thread(PosccalmRunnable);
+		PoccQueryThread.start();
+	}
+
+
+
+	/* (non-Javadoc)
+	 * @see android.support.v4.app.FragmentActivity#onPause()
+	 */
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		Log.e("mpeng","new pragram onpause");
+		if(PosccalmRunnable!=null)
+			PosccalmRunnable.destroy();
+		
+	}
+
+    /* (non-Javadoc)
+	 * @see android.support.v4.app.FragmentActivity#onDestroy()
+	 */
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		Log.e("mpeng","onDestroy new pragram activity");
+		unregisterReceiver(FR);
+		if(nocationDialog!=null)
+			nocationDialog.dismiss();
+		super.onDestroy();
+	}
+
+
+	/* (non-Javadoc)
+	 * @see android.support.v4.app.FragmentActivity#onDestroy()
+	 */
+//	@Override
+//	protected void onDestroy() {
+//		// TODO Auto-generated method stub
+//		Log.d(TAG,"on destroy ");
+//		unregisterReceiver(FR);
+//		super.onDestroy();
+//	}
+//
+	 private class UpdateFragmentReceiver extends BroadcastReceiver
+	    {
+	        @Override
+	        public void onReceive(Context context, Intent intent)
+	        {
+	        
+	            String action = intent.getAction();
+	        	if(action.equals("KeyMsg"))
+	        	{	        		
+//	        		detailSettingFragment!=null||
+		        	if(actionBar.getSelectedNavigationIndex()==1&&detailSettingFragment!=null&&detailSettingFragment.isAdded())
+		        	{
+		        		Log.e("mpeng","get action 111 !!!!!!!!!");
+		        		 byte[] keycode = new byte[3];
+		            	 keycode = intent.getExtras().getByteArray("keycode");
+		            	 KeyMsgHandle(keycode,context);
+		            	 //
+		        	}
+		        	else if(actionBar.getSelectedNavigationIndex()==3)
+		        	{
+		        		Log.e("mpeng","get action  222 !!!!!!!!!");
+		        		 byte[] keycode = new byte[3];
+		            	 keycode = intent.getExtras().getByteArray("keycode");
+		            	 KeyMsgHandle(keycode,context);
+		            	 //
+		        	}
+		        	else 
+		        	{
+		        		 byte[] keycode = new byte[3];
+		            	 keycode = intent.getExtras().getByteArray("keycode");
+		            	 KeyMsgHandleOtherFragment(keycode,context);
+//		        		 int Key_Value = keycode[0] & 0xFF;//255
+//		        		 if(Key_Value==153)
+//		        			 return;
+//		        		 Log.e("mpeng","get action  333 !!!!!!!!!");
+//		        	    if(KeyMsgDialog != null)
+//			            	KeyMsgDialog.dismiss();
+//			             KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
+//			            .setMessage("是否要进行自由操作！")
+//			            .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+//							
+//							@Override
+//							public void onClick(DialogInterface dialog, int which) {
+//								// TODO Auto-generated method stub
+//									actionBar.setSelectedNavigationItem(3);
+//								
+//							}
+//						})
+//			            .setPositiveButton("取消", null)
+//			            .show();
+		        	}
+	        	}
+	        	else if(action.equals("ThreadOption"))
+	        	{
+	        		String Option = intent.getStringExtra("Option");
+    				if(Option.equals("StopThread"))
+    				{
+    					Log.e("mpeng","stopthread");
+    					if(PosccalmRunnable!=null)
+    						PosccalmRunnable.destroy();
+    				}	        					
+    				else if(Option.equals("StartThread"))
+    				{
+    					Log.e("mpeng","StartThread");
+    					if(PosccalmRunnable!=null)
+    						PosccalmRunnable.destroy();
+    					PosccalmRunnable = new posccalmQueryRunnable(NewPragramActivity.this);
+    					PoccQueryThread = new Thread(PosccalmRunnable);
+    					PoccQueryThread.start();
+    					
+    				}
+	        	}
+	        	else
+	        	{
+	        		
+	            intent.getExtras();
+	            int pos =  intent.getIntExtra("Clickposition", -1);	       
+				mBundle = intent.getExtras();
+				myName = intent.getStringExtra("name");
+	            SwitchDetailFg(action,pos);
+	        	}
+	           
+	        }
+	    }
+
+	 /* (non-Javadoc)
+	 * @see android.app.Activity#recreate()
+	 */
+
+	private void SwitchDetailFg(String str,int pos)
+	{
+		
+		if(str.equals("goPositionPreview"))
+		{
+			final   FragmentManager fragmentManager1 = this.getFragmentManager();
+			final   FragmentTransaction fragmentTransaction1 = fragmentManager1.beginTransaction();		
+			Log.i(TAG,"SwitchDetailFg goPositionPreview");
+			arguments.clear();
+			if(mBundle.getBoolean("GotoTimer", false)){
+				arguments.putString("changeStatus", "istimer");
+			}
+			else
+			{
+				arguments.putString("changeStatus", "isPosition");
+			}
+			PositionPreviewFragment.setArguments(arguments);
+			fragmentTransaction1.remove(detailSettingFragment);
+			fragmentTransaction1.add(R.id.detail_container, PositionPreviewFragment, null);
+			fragmentTransaction1.commitAllowingStateLoss();	
+		}
+		else if(str.equals("gotoDetailSetting"))
+		{
+//			//从列表页面传递需要的参数到详情页面
+			final   FragmentManager fragmentManager1 = this.getFragmentManager();
+			final   FragmentTransaction fragmentTransaction1 = fragmentManager1.beginTransaction();	
+				fragmentTransaction1.remove(PositionPreviewFragment);
+			if(detailSettingFragment!=null)
+				fragmentTransaction1.remove(detailSettingFragment);
+			detailSettingFragment = new FragmentOne();
+			detailSettingFragment.setArguments(mBundle);			
+			fragmentTransaction1.add(R.id.detail_container, detailSettingFragment, null);
+			fragmentTransaction1.commitAllowingStateLoss();			
+			Log.i(TAG,"SwitchDetailFg gotoDetailSetting:"+FgTransaction);		
+
+
+		}else if(str.equals("highlight"))
+		{
+			Message msg = new Message();
+			msg.obj = myName;
+			msg.what = 1;
+			if(myHandler!=null)
+				myHandler.handleMessage(msg);
+		}
+		
+	}
+	/* (non-Javadoc)
+	 * @see android.app.ActionBar.TabListener#onTabReselected(android.app.ActionBar.Tab, android.app.FragmentTransaction)
+	 */
+	@Override
+	public void onTabReselected(Tab tab, android.app.FragmentTransaction ft) {
+		// TODO Auto-generated method stub
+		if(unseltab==2&&Fragments_Action.getModifyStatus())
+		{
+			Fragments_Action.changeModifyStatus(false);
+			if(FragmentAciton  !=null)   
+        	{
+        		Log.d("mpeng"," tabunselect 1111 :"+tab.getPosition());
+        		
+        		ft.remove(FragmentAciton);
+        	}
+		
+			switch(tab.getPosition())
+	        {
+	        case 0:  
+	        	if(FragmentContainer == null)
+	        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+	   
+	        	FragmentContainer.setVisibility(View.GONE);
+	        	if(FragmentContainer == null)
+	        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+	        	FragmentOther.setVisibility(View.VISIBLE);	
+	
+				if(FragmentMoudle!=null)
+					ft.remove(FragmentMoudle);	
+	
+				FragmentMoudle = new Fragments_mouldData();
+				ft.add(R.id.fragment_container1, FragmentMoudle, null);
+	
+	
+	
+	       	 break;
+	        case 1:    
+		
+	        	if(FragmentContainer == null)
+	        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+	   
+	        	if(FragmentOther == null)
+	        			FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+	        	PositionPreviewFragment.setArguments(arguments);
+				FragmentOther.setVisibility(View.GONE);	
+				FragmentContainer.setVisibility(View.VISIBLE);
+	        	ft.add(R.id.list_container, listFragment, null);
+	        	ft.add(R.id.detail_container, PositionPreviewFragment, null);
+	        	buttonView.setVisibility(View.VISIBLE);
+	       	 break;
+	        case 2:
+	        	
+	        	if(FragmentContainer == null)
+	        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);
+	   
+	        	FragmentContainer.setVisibility(View.GONE);
+	        	if(FragmentContainer == null)
+	        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+	        	FragmentOther.setVisibility(View.VISIBLE);	
+	
+				if(FragmentAciton!=null)
+					ft.remove(FragmentAciton);	
+	
+				FragmentAciton = new Fragments_Action();
+				ft.add(R.id.fragment_container1, FragmentAciton, null);
+	
+				fromDialog = false;
+	       	 break;
+	        case 3:
+	    		Log.d("mpeng","the get position is "+tab.getPosition());	
+	        	if(FragmentContainer == null)
+	        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+	   
+	        	FragmentContainer.setVisibility(View.GONE);
+	        	if(FragmentContainer == null)
+	        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+	        	FragmentOther.setVisibility(View.VISIBLE);	
+	
+				if(FragmentFreeOption!=null)
+					ft.remove(FragmentFreeOption);	
+	
+				FragmentFreeOption = new Fragments_FreeOption();
+				ft.add(R.id.fragment_container1, FragmentFreeOption, null);
+	
+	       	 break;
+	        case 4:
+	        	if(FragmentContainer == null)
+	        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+	   
+	        	FragmentContainer.setVisibility(View.GONE);
+	        	if(FragmentContainer == null)
+	        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+	        	FragmentOther.setVisibility(View.VISIBLE);	
+	
+				if(FragmentExtra!=null)
+					ft.remove(FragmentExtra);	
+	
+				FragmentExtra = new Fragments_extras();
+				ft.add(R.id.fragment_container1, FragmentExtra, null);
+		
+	
+	       	break;
+	        }
+	 }
+	}
+	
+	/* (non-Javadoc)
+	 * @see android.app.ActionBar.TabListener#onTabSelected(android.app.ActionBar.Tab, android.app.FragmentTransaction)
+	 */
+	@Override
+	public void onTabSelected(Tab tab, android.app.FragmentTransaction ft) {
+		// TODO Auto-generated method stub		
+		selTab = tab;
+		if(unseltab == 2&&!fromDialog&&Fragments_Action.getModifyStatus())
+		{		
+			showDialog();
+			return;
+		}
+		
+
+		switch(tab.getPosition())
+        {
+        case 0:  
+        	if(FragmentContainer == null)
+        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+   
+        	FragmentContainer.setVisibility(View.GONE);
+        	if(FragmentContainer == null)
+        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+        	FragmentOther.setVisibility(View.VISIBLE);	
+
+			if(FragmentMoudle!=null)
+				ft.remove(FragmentMoudle);	
+
+			FragmentMoudle = new Fragments_mouldData();
+			ft.add(R.id.fragment_container1, FragmentMoudle, null);
+
+
+
+       	 break;
+        case 1:    
+	
+        	if(FragmentContainer == null)
+        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+   
+        	if(FragmentOther == null)
+        			FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+        	
+
+        	PositionPreviewFragment.setArguments(arguments);
+			FragmentOther.setVisibility(View.GONE);	
+			FragmentContainer.setVisibility(View.VISIBLE);
+        	ft.add(R.id.list_container, listFragment, null);
+        	ft.add(R.id.detail_container, PositionPreviewFragment, null);
+        	buttonView.setVisibility(View.VISIBLE);
+
+			
+       	 break;
+        case 2:
+        	
+        	if(FragmentContainer == null)
+        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);
+   
+        	FragmentContainer.setVisibility(View.GONE);
+        	if(FragmentContainer == null)
+        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+        	FragmentOther.setVisibility(View.VISIBLE);	
+
+			if(FragmentAciton!=null)
+			{
+				ft.remove(FragmentAciton);	
+			}
+
+			FragmentAciton = new Fragments_Action();
+			ft.add(R.id.fragment_container1, FragmentAciton, null);
+
+			fromDialog = false;
+       	 break;
+        case 3:
+    		Log.d("mpeng","the get position is "+tab.getPosition());	
+        	if(FragmentContainer == null)
+        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+   
+        	FragmentContainer.setVisibility(View.GONE);
+        	if(FragmentContainer == null)
+        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+        	FragmentOther.setVisibility(View.VISIBLE);	
+
+			if(FragmentFreeOption!=null)
+				ft.remove(FragmentFreeOption);	
+
+			FragmentFreeOption = new Fragments_FreeOption();
+			ft.add(R.id.fragment_container1, FragmentFreeOption, null);
+
+       	 break;
+        case 4:
+        	if(FragmentContainer == null)
+        		FragmentContainer = (LinearLayout) findViewById(R.id.tab2_layout);	
+   
+        	FragmentContainer.setVisibility(View.GONE);
+        	if(FragmentContainer == null)
+        		FragmentOther = (LinearLayout) findViewById(R.id.fragment_container1);
+        	FragmentOther.setVisibility(View.VISIBLE);	
+
+			if(FragmentExtra!=null)
+				ft.remove(FragmentExtra);	
+
+			FragmentExtra = new Fragments_extras();
+			ft.add(R.id.fragment_container1, FragmentExtra, null);
+	
+
+       	break;
+        }
+	}
+	/* (non-Javadoc)
+	 * @see android.app.ActionBar.TabListener#onTabUnselected(android.app.ActionBar.Tab, android.app.FragmentTransaction)
+	 */
+	@Override
+	public void onTabUnselected(Tab tab, android.app.FragmentTransaction ft) {
+		// TODO Auto-generated method stub	
+		Log.d("mpeng"," tabunselect :"+tab.getPosition());
+		unseltab = tab.getPosition();		
+		if((unseltab == 2)&&!fromDialog&&Fragments_Action.getModifyStatus())
+			return;
+		switch(tab.getPosition())
+        {
+        case 0:   
+        	if( FragmentMoudle  !=null)   
+        	{
+        		ft.remove(FragmentMoudle);
+        		ft.detach(FragmentMoudle);
+        	}
+        	
+
+       	 break;
+        case 1:   
+        	ft.remove(listFragment);
+        	ft.remove(PositionPreviewFragment);
+        	
+        	if(detailSettingFragment!=null)
+        		ft.remove(detailSettingFragment);
+        	arguments.clear();
+        	arguments.putString("changeStatus", "isPosition");
+        	buttonView.setVisibility(View.GONE);
+			
+       	 break;
+        case 2:
+        	if( FragmentAciton  !=null)   
+        	{
+        		ft.remove(FragmentAciton);
+
+        	}
+       	 break;
+        case 3:
+        	if( FragmentFreeOption  !=null)   
+        	{
+        		ft.remove(FragmentFreeOption);
+
+        	}
+       	 break;
+        case 4:
+        	if( FragmentExtra  !=null)   
+        	{
+        		ft.remove(FragmentExtra);        	
+        	}
+       	break;
+        }
+	}
+
+	public void setHandler(Handler hd)
+	{
+		myHandler = hd;
+	}
+	
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		try{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.setting_activity, menu);// 菜单
+	}catch(Exception e){
+		e.printStackTrace();
+	}
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Log.d("mpeng","the seltab.getpositon "+selTab.getPosition()+"Fragments_Action.getModifyStatus()"
+				+Fragments_Action.getModifyStatus());
+		if(selTab.getPosition() == 2&&!fromDialog&&Fragments_Action.getModifyStatus()){
+			showDialog();		
+			return false ;
+		}
+		switch (item.getItemId()) {
+		case R.id.menu_activity_main:
+//			Intent intent_main=new Intent();
+//			intent_main.setClass(TR_Programming_Activity.this, TR_Main_Activity.class);
+			startActivity(new Intent().setClass(NewPragramActivity.this, TR_Main_Activity.class));
+			NewPragramActivity.this.finish();
+			break;
+		case R.id.menu_activity_programming:
+			startActivity(new Intent().setClass(NewPragramActivity.this, TR_Programming_Activity.class));
+			NewPragramActivity.this.finish();
+			break;
+		case R.id.menu_activity_parameter_setting:
+			startActivity(new Intent().setClass(NewPragramActivity.this, TR_Parameter_Setting_Activity.class));
+			break;
+		case R.id.menu_activity_maintainGuide:
+			startActivity(new Intent().setClass(NewPragramActivity.this,TR_MaintainGuide_Activity.class));
+			break;
+		default:
+			// 对没有处理的事件，交给父类来处理
+			return super.onOptionsItemSelected(item);
+		}
+		// 返回true表示处理完菜单项的事件，不需要将该事件继续传播下去了
+		return true;
+	}
+	
+	
+	/**
+	 * 返回键直接回到主界面
+	 */
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+		if (keyCode==KeyEvent.KEYCODE_BACK&&event.getRepeatCount()==0) {
+			//DelayTimerQueryRunnble.destroy();
+			startActivity(new Intent().setClass(this, TR_Main_Activity.class));
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	
+	private void backupFile(){
+		if(nocationDialog!=null)
+		nocationDialog.dismiss();
+		final View view_newcreate=View.inflate(this, R.layout.tab_setting_mould_newcreate, null);
+		new AlertDialog.Builder(this)
+		.setTitle("另存为操作").setView(view_newcreate)
+		.setPositiveButton("确定",
+        new DialogInterface.OnClickListener() 
+		{
+			public void onClick(DialogInterface dialog, int which) {
+				//1 新建文件夹
+				EditText editmouldnum=(EditText)view_newcreate.findViewById(R.id.editText_mouldnum);
+				EditText editmouldname=(EditText)view_newcreate.findViewById(R.id.editText_mouldname);
+				String editmouldnumstr=editmouldnum.getText().toString();
+				String editmouldnamestr=editmouldname.getText().toString();
+				if(editmouldnumstr.equals("")){
+					Toast.makeText(NewPragramActivity.this, "模具数据编号为空，请重新输入！", Toast.LENGTH_SHORT).show();
+					fromDialog = false;
+					return;
+				}
+				Fragments_mouldData.checkMouldList(list_mouldnum, list_mould_setting,"num_mould_setting");
+				if (list_mouldnum.contains(String.format("%1$04d",Integer.parseInt(editmouldnumstr)))) {
+					Toast.makeText(NewPragramActivity.this, "模具数据编号重复，请重新输入",Toast.LENGTH_SHORT).show();
+					fromDialog = false;
+					return;
+				}
+				if(editmouldnamestr.equals("")){
+					Toast.makeText(NewPragramActivity.this, "模具数据名称为空，请重新输入！", Toast.LENGTH_SHORT).show();
+					fromDialog = false;
+					return;
+				}
+				Fragments_mouldData.checkMouldList(list_mouldname, list_mould_setting,"name_mould_setting");
+				if (list_mouldname.contains(editmouldnamestr.toLowerCase())) {
+					Toast.makeText(NewPragramActivity.this, "模具数据名称重复，请重新输入",Toast.LENGTH_SHORT).show();
+					fromDialog = false;
+					return;
+				}
+				if (editmouldnamestr.length()>18) {
+					Toast.makeText(NewPragramActivity.this, "模具数据名称长度超出范围，请重新输入",Toast.LENGTH_SHORT).show();
+					fromDialog = false;
+					return;
+				}
+				Constans.mouldData.createFolder(Constans.mouldDataPATH, editmouldnamestr.toString());
+				
+				//2，把RAW里面的模板复制进文件夹
+
+				copyFile(Constans.mouldDataPATH+editmouldnamestr.toString(),"device");						
+				copyFile(Constans.mouldDataPATH+editmouldnamestr.toString(),"userprg");						
+				copyFile(Constans.mouldDataPATH+editmouldnamestr.toString(),"Userlog");
+				
+				HashMap<String, Object> mapadd = new HashMap<String, Object>();
+				mapadd.put("num",	String.format("%1$04d", list_mould_setting.size()+1));//
+				mapadd.put("num_mould_setting","");
+				mapadd.put("name_mould_setting","");
+				mapadd.put("note_mould_setting","");
+				list_mould_setting.add(mapadd);
+				
+				int intAll=Fragments_mouldData.checkAllNum(list_mould_setting);
+				final String date2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());// 当前时间
+				list_mould_setting.get(intAll).put("num_mould_setting",String.format("%1$04d",Integer.parseInt(editmouldnumstr)));
+				list_mould_setting.get(intAll).put("name_mould_setting", editmouldnamestr);
+				list_mould_setting.get(intAll).put("note_mould_setting", date2);
+				
+				Fragments_mouldData.saveMouldDataList(list_mould_setting,date2,intAll);
+				WifiSetting_Info.wifiTimeOut=System.currentTimeMillis();
+				WifiSetting_Info.progressDialog = ProgressDialog.show(NewPragramActivity.this, "另存程序中", "请等待", true, false); 
+				
+				TR_Main_Activity.sharedPreference_openedDir.edit().putString("dir_num", editmouldnumstr.toString().trim()).commit();
+				TR_Main_Activity.sharedPreference_openedDir.edit().putString("dir_name", editmouldnamestr.toString().trim()).commit();
+				TR_Main_Activity.sharedPreference_openedDir.edit().putString("dir_time", date2).commit();
+				
+
+				saveStrname=editmouldnamestr.toString().trim();
+				new Thread()
+	              {
+	                  public void run()
+	                  {
+	                	//3，把NC保存进模板里面 关掉PROGRESSDIALOG
+	                		final String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());// 当前时间
+	                	    saveAs_NcEdit(saveStrname, date);
+	                	  	Fragments_mouldData.saveAs_DeviceDefine(saveStrname, date);
+	                	  	Fragments_mouldData.saveAs_TableEdit(saveStrname, date);
+	                		if(WifiSetting_Info.progressDialog !=null)
+	                		{
+	                			WifiSetting_Info.progressDialog.dismiss();
+	                			WifiSetting_Info.progressDialog = null;
+	                		}
+	                  }
+	              }.start();
+				
+			}
+		}).setNegativeButton("取消",null).show();
+	
+	}
+	
+	private void  copyFile(String path,String name)
+	{
+		 try{
+			String FileName =  path + "/" + name+".trt";
+             File dir = new File(path);            
+             if (!dir.exists())
+                 dir.mkdir(); 
+	             if (!(new File(FileName)).exists())
+	             {
+	            	 InputStream is = null;
+	            	 if(name.equals("device"))
+	            		     is = getResources().openRawResource(R.raw.device);
+	            	 else if(name.equals("userprg"))
+	            		 	 is = getResources().openRawResource(R.raw.userprg);
+	            	 else if(name.equals("Userlog"))
+	            			 is = getResources().openRawResource(R.raw.userlog);
+	            	 
+	            	 if(is == null)
+	            		 return;
+	            			 
+	                 FileOutputStream fos = new FileOutputStream(FileName);
+	                 byte[] buffer = new byte[8192];
+	                 int count = 0;
+	                 while ((count = is.read(buffer)) > 0)
+	                 {
+	                     fos.write(buffer, 0, count);
+	                 }
+	                 fos.close();
+	                 is.close();
+	             }
+             }
+		 catch (Exception e)
+		{ 
+			 new AlertDialog.Builder(NewPragramActivity.this)
+			 	  .setTitle("错误报告")
+			      .setMessage("无法复制！")
+			      .setPositiveButton("确定",
+			                     new DialogInterface.OnClickListener(){
+			                             public void onClick(DialogInterface dialoginterface, int i){
+			                                                                        }
+			                      })
+			      .show();
+		}
+	}
+	
+	private   void saveAs_NcEdit(String foldername, String date) {
+
+		Constans.mouldData.createFolder(Constans.mouldDataPATH, foldername).createFile(Constans.nc文本数据);
+		//		Constans.dataToDownload.createFolder(Constans.mouldDataPATH+ foldername + File.separator, Constans.dataToDownloadFolder);
+		Constans.mouldData.cleanFile(Constans.nc文本数据);
+		Fragments_mouldData.saveAs_8nc(foldername,
+				ArrayListBound.getNCeditList1Data(),
+				"[NCEdit1]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		Fragments_mouldData.saveAs_8nc(foldername,
+				ArrayListBound.getNCeditList2Data(),
+				"[NCEdit2]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		Fragments_mouldData.saveAs_8nc(foldername,
+				nctestlist,
+				"[NCEdit3]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		Fragments_mouldData.saveAs_8nc(foldername,
+				ArrayListBound.getNCeditList4Data(),
+				"[NCEdit4]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		Fragments_mouldData.saveAs_8nc(foldername,
+				ArrayListBound.getNCeditList5Data(),
+				"[NCEdit5]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		Fragments_mouldData.saveAs_8nc(foldername,
+				ArrayListBound.getNCeditList6Data(),
+				"[NCEdit6]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		Fragments_mouldData.saveAs_8nc(foldername,
+				ArrayListBound.getNCeditList7Data(),
+				"[NCEdit7]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		Fragments_mouldData.saveAs_8nc(foldername,
+				ArrayListBound.getNCeditList8Data(),
+				"[NCEdit8]", date);
+		Constans.mouldData.writeFile(Constans.nc文本数据, "\r\n");// 不同段之间空一行
+		
+	}	
+
+	private void showDialog()
+	{
+		fromDialog = true;
+		nocationDialog = new AlertDialog.Builder(NewPragramActivity.this).setTitle(R.string.T_titlenotice)
+		   .setMessage("当前程序未下载，是否下载?")
+		   .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+//				backupFile();
+				DownloadOrNot = true;
+				Fragments_Action.DownBtn.performClick();
+			}
+		}).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				fromDialog = true;
+				actionBar.setSelectedNavigationItem(selTab.getPosition());				
+			}
+		}).show();
+		//nocationDialog.setCancelable(false);
+	}
+//	public static File getFileFromBytes(byte[] b, String outputFile) { 
+//        File ret = Constans.mouldData.createFolder(Constans.mouldDataPATH, "8864").createFile("nc"); 
+//        BufferedOutputStream stream = null; 
+//        
+//        try {
+//               ret = new File(outputFile); 
+//               FileOutputStream fstream = new FileOutputStream(ret); 
+//               stream = new BufferedOutputStream(fstream); 
+//               stream.write(b);
+//        } catch (Exception e) { 
+////            log.error("helper:get file from byte process error!"); 
+//            e.printStackTrace(); 
+//        } finally { 
+//            if (stream != null) { 
+//                try { 
+//                    stream.close(); 
+//                } catch (IOException e) { 
+//                    e.printStackTrace(); 
+//                } 
+//            } 
+//        } 
+//        return ret; 
+//    }
+//	
+	  private void KeyMsgHandle(byte[]  kc ,Context context)
+	  {
+		     byte [] temp= new byte[2];
+			 System.arraycopy(kc, 0, temp, 0, 2);
+			 int Key_Value =HexDecoding.Array2Toint(temp);//255	 
+	 		 int Key_Function = kc[2] & 0xFF;//255	 
+	 		 Log.e("mpeng","the key value is "+Key_Value);
+	 		 switch(Key_Value)
+	 		 {
+	 		 	 case 11:  //HOME
+	 		 		//有警报
+	 		 		 if(WifiSetting_Info.alarmFlag==1){
+	 		 			KeyCodeSend.send(996, NewPragramActivity.this);
+	 		 		 }else{
+	 		 		new Thread() {
+						public void run() {
+					 		Instrumentation inst = new Instrumentation();//方法2
+			                inst.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+						}
+					}.start();
+	 		 		}
+	 		 		break;
+	 		 	 case 14:		 	
+			 		KeyCodeSend.send(999, NewPragramActivity.this);
+				 break;
+	 		 	 case 12:	//Z-  L-	
+	 		 		 if(Key_Function==0)
+	 		 		 {
+	 		 			
+	 		 			 if(Config.SelectArmId == R.id.ProductArm){
+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(937, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(938, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1034, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1034+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1034+131072), NewPragramActivity.this);	//高速
+	 		 				 }
+	 		 				
+	 		 				 
+	 		 				 
+	 		 			 }else{
+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(947, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(948, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1044, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1044+65536), NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1044+131072), NewPragramActivity.this);	//高速
+	 		 				 }
+	 		 				 
+	 		 			 }
+	 		 		 }
+	 		 		 break;
+	 		 	case 24:	//Z+  L+
+	 		 		 if(Key_Function==0)
+	 		 		 {
+	 		 			 if(Config.SelectArmId == R.id.ProductArm){
+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(935, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(936, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1033, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1033+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1033+131072), NewPragramActivity.this);	//高速
+	 		 				 }
+	 		 				
+	 		 				 
+	 		 			 }else{
+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(945, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(946, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1043, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1043+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1043+131072), NewPragramActivity.this);	//高速
+	 		 				 }
+	 		 				
+	 		 				 
+	 		 			 }
+	 		 		 }
+	 		 		 break;
+	 		 	 case 34: //Y h -
+	 		 		 if(Key_Function==0)
+	 		 		 {
+	 		 			 if(Config.SelectArmId == R.id.ProductArm){
+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(917, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(918, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1014, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1014+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1014+131072), NewPragramActivity.this);	//高速
+	 		 				 }
+	 		 				 
+	 		 				 
+	 		 			 }else{ //h -
+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(927, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(928, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1024, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1024+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1024+131072), NewPragramActivity.this);	//高速
+	 		 				 }
+	 		 				
+	 		 				 
+	 		 			 }
+	 		 		 }
+	 		 		 break;
+	 		 	 case 13: //Y+   h
+	 		 		 if(Key_Function==0)
+	 		 		 {
+	 		 			 if(Config.SelectArmId == R.id.ProductArm){   //Y+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(915, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(916, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1013, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1013+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1013+131072), NewPragramActivity.this);	//高速
+	 		 				 } 		 				 
+	 		 			 }else{                                 //H+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(925, NewPragramActivity.this);	//0.1 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(926, NewPragramActivity.this);	//1.0 		 				 
+	 		 			     }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1023, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1023+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1023+131072), NewPragramActivity.this);	//高速
+	 		 				 } 	
+	 		 			 }
+	 		 		 }
+	 		 		 break;
+	 		 	 
+	 		 	 case 33:	//x-
+	 		 		 if(Key_Function==0)
+	 		 		 {
+	 		 		
+	 		 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(907, NewPragramActivity.this);	//0.1		 					
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(908, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1004, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1004+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1004+131072), NewPragramActivity.this);	//高速
+	 		 				 } 	
+
+	 		 				 
+	 		 			
+	 		 		 }
+	 		 		 break;
+	 		 	 case 23:		//x+
+	 		 		 if(Key_Function==0)
+	 		 		 {	 				 
+	 		 				 if( Config.SelectSpeedId==R.id.speedBtnFour)
+	 		 				 {
+	 		 					 KeyCodeSend.send(905, NewPragramActivity.this);	//0.1
+	 		 					 
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnFive)
+	 		 				 {
+	 		 					 KeyCodeSend.send(906, NewPragramActivity.this);	//1.0
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnOne)
+	 		 				 {
+	 		 					 KeyCodeSend.send(1003, NewPragramActivity.this);	//低速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnTwo)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1003+65536), NewPragramActivity.this);	//中速
+	 		 				 }else if( Config.SelectSpeedId==R.id.speedBtnThree)
+	 		 				 {
+	 		 					 KeyCodeSend.send((1003+131072), NewPragramActivity.this);	//高速
+	 		 				 } 
+	 		 				 
+	 		 			
+	 		 		 }
+	 		 		 break; 		 
+	 		 		 
+	 			 case 32:
+			 		 KeyCodeSend.send(26, NewPragramActivity.this);		 		 
+			 		 break;
+			 	 case 22:
+			 		KeyCodeSend.send(25, NewPragramActivity.this);
+			 		 break;
+			 	 case 31:
+			 		KeyCodeSend.send(24, NewPragramActivity.this);
+			 		 break;
+			 	 case 21:
+			 		KeyCodeSend.send(23, NewPragramActivity.this);
+			 		 break;	
+			 	case 212:
+			 	case 213:	
+			 	case 223:
+			 	case 224:
+			 	case 233:	
+			 	case 234:
+			 		KeyCodeSend.send(999, NewPragramActivity.this);
+			 		break;
+	 		 }
+	 		
+	 	}
+	  private void KeyMsgHandleOtherFragment(byte[]  kc ,Context context)
+		{
+				byte [] temp= new byte[2];
+				System.arraycopy(kc, 0, temp, 0, 2);
+			 int Key_Value =HexDecoding.Array2Toint(temp);//255
+			 int Key_Function = kc[2] & 0xFF;//255
+//			 if(KeyMsgDialog != null)
+//	         	KeyMsgDialog.dismiss();
+//	          KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
+//	         .setMessage("keyvalue:"+ Key_Value+"keyfunction :"+Key_Function)
+//	         .setPositiveButton("OK", null).show();
+//			
+			 switch(Key_Value)
+			 {
+			 	 case 14:	
+			 		KeyCodeSend.send(999, NewPragramActivity.this);
+				 break;
+			 	 case 11:  //HOME
+			 		//有警报
+				 		 if(WifiSetting_Info.alarmFlag==1){
+				 			KeyCodeSend.send(996, NewPragramActivity.this);
+				 		 }else{
+	 		         new Thread() {
+						public void run() {
+					 		Instrumentation inst = new Instrumentation();//方法2
+			                inst.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+						}
+					}.start();
+				 		 }
+				 		break;
+			 	 case 12:			 		
+			 	 case 34:		 		
+			 	 case 13:		 	
+			 	 case 24:		 	
+			 	 case 33:		 	
+			 	 case 23:		 	
+			 	 //case 153:
+			 		 if(Key_Function==0)
+			 		 {
+			 			 Log.e("mpeng","SHOW key msg dialog");
+				        if(KeyMsgDialog == null)
+				        {
+				             KeyMsgDialog = new AlertDialog.Builder(context).setTitle("提示")
+				            .setMessage("是否要进行自由操作！"+ Key_Value)
+				            .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+								
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									// TODO Auto-generated method stub
+									actionBar.setSelectedNavigationItem(3);
+								}
+							})
+				            .setPositiveButton("取消", null).show();
+				             KeyMsgDialog.setCanceledOnTouchOutside(false);
+				             KeyMsgDialog = null;
+				        }
+			            
+			 		 }
+			 		 break;
+			 		 
+			 		 
+			 	 case 32:
+			 		 KeyCodeSend.send(26, NewPragramActivity.this);		 		 
+			 		 break;
+			 	 case 22:
+			 		 KeyCodeSend.send(25, NewPragramActivity.this);
+			 		 break;
+			 	 case 31:
+			 		 KeyCodeSend.send(24, NewPragramActivity.this);
+			 		 break;
+			 	 case 21:
+			 		 KeyCodeSend.send(23, NewPragramActivity.this);
+			 		 break;	 
+			 }
+			
+		}
+}

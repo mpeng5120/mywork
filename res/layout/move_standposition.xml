@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:widget="http://schemas.android.com/apk/res/com.tr"	
+ 	android:id="@+id/FSPLayout"
+    android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/black" >
+                <ToggleButton
+                    android:id="@+id/sfp_switch"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"                        
+                    android:text="ToggleButton"
+                    android:layout_weight="1"
+                    android:textOff="@string/setting_product"
+                    android:textOn="@string/setting_feedertrough" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="1dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/gray"
+                    android:gravity="center"
+                    android:text="@string/setting_foot" />
+                <TextView
+                    android:id="@+id/productBA_sfp_setting"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="1dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/gray"
+                    android:gravity="center"
+                    android:text="@string/setting_productBA" />
+
+                <TextView
+                    android:id="@+id/productUD_sfp_setting"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_margin="1dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/gray"
+                    android:gravity="center"
+                    android:text="@string/setting_productUD" />
+            </LinearLayout>
+
+            <ListView
+                android:id="@+id/fpsp_listview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+            </ListView>
+       
+</LinearLayout>
